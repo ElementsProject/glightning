@@ -2,8 +2,8 @@ package glightning_test
 
 import (
 	"fmt"
-	"github.com/niftynei/glightning/glightning"
-	"github.com/niftynei/glightning/jrpc2"
+	"github.com/sputn1ck/glightning/glightning"
+	"github.com/sputn1ck/glightning/jrpc2"
 	"testing"
 )
 
