@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/niftynei/glightning/glightning"
+	"github.com/sputn1ck/glightning/glightning"
 	"sync"
 )
 
