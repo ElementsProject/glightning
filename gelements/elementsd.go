@@ -730,6 +730,35 @@ func (r *ImportAddressReq) Name() string {
 	return "importaddress"
 }
 
+type SignRawTransactionWithWalletReq struct {
+	HexString string `json:"hexstring"`
+}
+
+type SignRawTransactionWithWalletRes struct {
+	Hex string `json:"hex"`
+	Complete bool `json:"complete"`
+	Errors []TxError `json:"errors"`
+	Warning string `json:"warning"`
+}
+
+type TxError struct {
+	TxId string`json:"txid"`
+	Vout uint32 `json:"vout"`
+	ScriptSig string `json:"scriptSig"`
+	Sequence uint32 `json:"sequence"`
+	Error string`json:"error"`
+}
+
+func (s *SignRawTransactionWithWalletReq) Name() string {
+	return "signrawtransactionwithwallet"
+}
+
+func (b *Elements) SignRawTransactionWithWallet(hexString string) (SignRawTransactionWithWalletRes, error) {
+	var res SignRawTransactionWithWalletRes
+	err := b.request(&SignRawTransactionWithWalletReq{HexString: hexString}, &res)
+	return res, err
+}
+
 func (b *Elements) ImportAddress(address, label string, rescan bool) error{
 	var resp string
 	err := b.request(&ImportAddressReq{
@@ -738,6 +767,60 @@ func (b *Elements) ImportAddress(address, label string, rescan bool) error{
 		Rescan:  rescan,
 	}, resp)
 	return err
+}
+
+
+type UnblindRawTransactionReq struct {
+	Hex string `json:"hex"`
+}
+
+func (u *UnblindRawTransactionReq) Name() string {
+	return "unblindrawtransaction"
+}
+
+type UnblindRawTransactionRes struct {
+	Hex string `json:"hex"`
+}
+
+func (b *Elements) UnblindRawtransaction(hex string) (string, error) {
+	var res UnblindRawTransactionRes
+	err := b.request(&UnblindRawTransactionReq{Hex: hex}, &res)
+	return res.Hex, err
+}
+
+type WalletCreateFundedPsbtReq struct {
+	Inputs []PsbtInput `json:"inputs"`
+	Outputs []PsbtOutput `json:"outputs"`
+}
+
+type BlindRawTransactionRes struct {
+	HexString string `json:"hexstring"`
+}
+
+func (b *BlindRawTransactionRes) Name() string {
+	return "blindrawtransaction"
+}
+
+func (e *Elements) BlindRawTransaction(hex string) (string, error) {
+	var res string
+	err := e.request(&BlindRawTransactionRes{HexString: hex}, &res)
+	return res, err
+}
+
+
+type PsbtInput struct {
+	TxId string `json:"txid"`
+	Vout uint32 `json:"vout"`
+	Sequence uint32 `json:"sequence"`
+}
+
+type PsbtOutput struct {
+	Values map[string] float64 `json:"values"`
+	Data string `json:"data"`
+}
+
+type WalletCreatFundedPsbtRes struct {
+
 }
 
 // for now, use a counter as the id for requests
