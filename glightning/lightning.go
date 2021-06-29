@@ -1136,7 +1136,7 @@ type SendPayFields struct {
 	AmountMilliSatoshi    string `json:"amount_msat"`
 	MilliSatoshiSentRaw   uint64 `json:"msatoshi_sent"`
 	MilliSatoshiSent      string `json:"amount_sent_msat"`
-	CreatedAt             uint64 `json:"created_at"`
+	CreatedAt             float64 `json:"created_at"`
 	Status                string `json:"status"`
 	PaymentPreimage       string `json:"payment_preimage,omitempty"`
 	Label                 string `json:"label,omitempty"`

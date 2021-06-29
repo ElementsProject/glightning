@@ -666,7 +666,7 @@ type SendPaySuccess struct {
 	AmountMilliSatoshi     string `json:"amount_msat"`
 	AmountSent             uint64 `json:"msatoshi_sent"`
 	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
-	CreatedAt              uint64 `json:"created_at"`
+	CreatedAt              float64 `json:"created_at"`
 	Status                 string `json:"status"`
 	PaymentPreimage        string `json:"payment_preimage"`
 }
