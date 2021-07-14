@@ -659,16 +659,16 @@ func (e *ForwardEvent) Call() (jrpc2.Result, error) {
 }
 
 type SendPaySuccess struct {
-	Id                     uint   `json:"id"`
-	PaymentHash            string `json:"payment_hash"`
-	Destination            string `json:"destination"`
-	MilliSatoshi           uint64 `json:"msatoshi"`
-	AmountMilliSatoshi     string `json:"amount_msat"`
-	AmountSent             uint64 `json:"msatoshi_sent"`
-	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
+	Id                     uint    `json:"id"`
+	PaymentHash            string  `json:"payment_hash"`
+	Destination            string  `json:"destination"`
+	MilliSatoshi           uint64  `json:"msatoshi"`
+	AmountMilliSatoshi     string  `json:"amount_msat"`
+	AmountSent             uint64  `json:"msatoshi_sent"`
+	AmountSentMilliSatoshi string  `json:"amount_sent_msat"`
 	CreatedAt              float64 `json:"created_at"`
-	Status                 string `json:"status"`
-	PaymentPreimage        string `json:"payment_preimage"`
+	Status                 string  `json:"status"`
+	PaymentPreimage        string  `json:"payment_preimage"`
 }
 
 type SendPaySuccessEvent struct {
@@ -1576,6 +1576,7 @@ func getUsageList(method jrpc2.ServerMethod) string {
 	t := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
+
 		fieldVal := v.Field(i)
 		fieldType := t.Field(i)
 		if !fieldVal.CanInterface() {
