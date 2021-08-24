@@ -2201,7 +2201,7 @@ type CustomMessageRequest struct {
 }
 
 func (r *CustomMessageRequest) Name() string {
-	return "dev-sendcustommsg"
+	return "sendcustommsg"
 }
 
 type CustomMessageResult struct {
