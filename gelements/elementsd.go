@@ -34,7 +34,7 @@ type Elements struct {
 	requestCounter int64
 	username       string
 	password       string
-	rpcWallet string
+	rpcWallet      string
 }
 
 func NewElements(username, password string) *Elements {
@@ -51,7 +51,7 @@ func NewElements(username, password string) *Elements {
 	return bt
 }
 func (b *Elements) Endpoint() string {
-	endpoint := b.host + ":" + strconv.Itoa(int(b.port))+"/wallet/"+b.rpcWallet
+	endpoint := b.host + ":" + strconv.Itoa(int(b.port)) + "/wallet/" + b.rpcWallet
 	return endpoint
 }
 
@@ -67,7 +67,7 @@ func (b *Elements) SetTimeout(secs uint) {
 	b.httpClient = &http.Client{Transport: tr}
 }
 
-func (b *Elements) StartUp(host string, port uint) error{
+func (b *Elements) StartUp(host string, port uint) error {
 	if host == "" {
 		b.host = defaultRpcHost
 	} else {
@@ -379,7 +379,7 @@ type SendToAddrReq struct {
 	Replaceable           bool   `json:"replaceable,omitempty"`
 	ConfirmationTarget    uint   `json:"conf_target,omitempty"`
 	FeeEstimateMode       string `json:"estimate_mode,omitempty"`
-	AssetLabel			string `json:"assetlabel"`
+	AssetLabel            string `json:"assetlabel"`
 }
 
 func (r *SendToAddrReq) Name() string {
@@ -399,6 +399,7 @@ func (b *Elements) SendToAddressCustom(req *SendToAddrReq) (string, error) {
 	err := b.request(req, &result)
 	return result, err
 }
+
 type TxIn struct {
 	TxId     string `json:"txid"`
 	Vout     uint   `json:"vout"`
@@ -544,8 +545,6 @@ func (r *DecodeRawTransactionReq) Name() string {
 	return "decoderawtransaction"
 }
 
-
-
 type Tx struct {
 	TxId        string      `json:"txid"`
 	Hash        string      `json:"hash"`
@@ -620,7 +619,7 @@ func (r *CreateWalletReq) Name() string {
 
 type WalletRes struct {
 	WalletName string `json:"name"`
-	Warning string `json:"warning"`
+	Warning    string `json:"warning"`
 }
 
 func (b *Elements) CreateWallet(walletName string) (string, error) {
@@ -649,7 +648,7 @@ func (b *Elements) LoadWallet(fileName string) (string, error) {
 
 }
 
-type ListWalletsReq struct {}
+type ListWalletsReq struct{}
 
 func (l *ListWalletsReq) Name() string {
 	return "listwallets"
@@ -662,7 +661,8 @@ func (b *Elements) ListWallets() ([]string, error) {
 }
 
 type GetRawTransactionReq struct {
-	TxId string `json:"txid"`
+	TxId      string `json:"txid"`
+	Blockhash string `json:"blockhash,omitempty"`
 }
 
 func (r *GetRawTransactionReq) Name() string {
@@ -674,8 +674,14 @@ func (b *Elements) GetRawtransaction(txId string) (string, error) {
 	err := b.request(&GetRawTransactionReq{TxId: txId}, &resp)
 	return resp, err
 }
+func (b *Elements) GetRawtransactionWithBlockHash(txId string, blockHash string) (string, error) {
+	var resp string
+	err := b.request(&GetRawTransactionReq{TxId: txId, Blockhash: blockHash}, &resp)
+	return resp, err
+}
 
-type GetBlockCountReq struct {}
+type GetBlockCountReq struct{}
+
 func (r *GetBlockCountReq) Name() string {
 	return "getblockcount"
 }
@@ -689,8 +695,7 @@ func (b *Elements) GetBlockHeight() (uint64, error) {
 type GetBalanceRequest struct {
 }
 
-
-func (r *GetBalanceRequest) Name() string{
+func (r *GetBalanceRequest) Name() string {
 	return "getbalance"
 }
 
@@ -722,8 +727,8 @@ func (b *Elements) DumpBlindingKey(address string) (string, error) {
 
 type ImportAddressReq struct {
 	Address string `json:"address"`
-	Label string `json:"label"`
-	Rescan bool `json:"rescan"`
+	Label   string `json:"label"`
+	Rescan  bool   `json:"rescan"`
 }
 
 func (r *ImportAddressReq) Name() string {
@@ -735,18 +740,18 @@ type SignRawTransactionWithWalletReq struct {
 }
 
 type SignRawTransactionWithWalletRes struct {
-	Hex string `json:"hex"`
-	Complete bool `json:"complete"`
-	Errors []TxError `json:"errors"`
-	Warning string `json:"warning"`
+	Hex      string    `json:"hex"`
+	Complete bool      `json:"complete"`
+	Errors   []TxError `json:"errors"`
+	Warning  string    `json:"warning"`
 }
 
 type TxError struct {
-	TxId string`json:"txid"`
-	Vout uint32 `json:"vout"`
+	TxId      string `json:"txid"`
+	Vout      uint32 `json:"vout"`
 	ScriptSig string `json:"scriptSig"`
-	Sequence uint32 `json:"sequence"`
-	Error string`json:"error"`
+	Sequence  uint32 `json:"sequence"`
+	Error     string `json:"error"`
 }
 
 func (s *SignRawTransactionWithWalletReq) Name() string {
@@ -759,7 +764,7 @@ func (b *Elements) SignRawTransactionWithWallet(hexString string) (SignRawTransa
 	return res, err
 }
 
-func (b *Elements) ImportAddress(address, label string, rescan bool) error{
+func (b *Elements) ImportAddress(address, label string, rescan bool) error {
 	var resp string
 	err := b.request(&ImportAddressReq{
 		Address: address,
@@ -768,7 +773,6 @@ func (b *Elements) ImportAddress(address, label string, rescan bool) error{
 	}, resp)
 	return err
 }
-
 
 type UnblindRawTransactionReq struct {
 	Hex string `json:"hex"`
@@ -789,7 +793,7 @@ func (b *Elements) UnblindRawtransaction(hex string) (string, error) {
 }
 
 type WalletCreateFundedPsbtReq struct {
-	Inputs []PsbtInput `json:"inputs"`
+	Inputs  []PsbtInput  `json:"inputs"`
 	Outputs []PsbtOutput `json:"outputs"`
 }
 
@@ -807,20 +811,18 @@ func (e *Elements) BlindRawTransaction(hex string) (string, error) {
 	return res, err
 }
 
-
 type PsbtInput struct {
-	TxId string `json:"txid"`
-	Vout uint32 `json:"vout"`
+	TxId     string `json:"txid"`
+	Vout     uint32 `json:"vout"`
 	Sequence uint32 `json:"sequence"`
 }
 
 type PsbtOutput struct {
-	Values map[string] float64 `json:"values"`
-	Data string `json:"data"`
+	Values map[string]float64 `json:"values"`
+	Data   string             `json:"data"`
 }
 
 type WalletCreatFundedPsbtRes struct {
-
 }
 
 // for now, use a counter as the id for requests
