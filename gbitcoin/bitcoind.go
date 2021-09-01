@@ -259,6 +259,26 @@ func (b *Bitcoin) GetRawBlock(blockhash string) (string, error) {
 	return result, err
 }
 
+type GetRawTransactionReq struct {
+	TxId      string `json:"txid"`
+	Blockhash string `json:"blockhash,omitempty"`
+}
+
+func (r *GetRawTransactionReq) Name() string {
+	return "getrawtransaction"
+}
+
+func (b *Bitcoin) GetRawtransaction(txId string) (string, error) {
+	var resp string
+	err := b.request(&GetRawTransactionReq{TxId: txId}, &resp)
+	return resp, err
+}
+func (b *Bitcoin) GetRawtransactionWithBlockHash(txId string, blockHash string) (string, error) {
+	var resp string
+	err := b.request(&GetRawTransactionReq{TxId: txId, Blockhash: blockHash}, &resp)
+	return resp, err
+}
+
 type EstimateFeeRequest struct {
 	Blocks uint32 `json:"conf_target"`
 	Mode   string `json:"estimate_mode,omitempty"`
@@ -404,6 +424,19 @@ func (o *TxOut) Marshal() []byte {
 	log.Printf(`{"%s":"%f"`, o.Address, amt)
 	return []byte(fmt.Sprintf(`{"%s":"%f"}`, o.Address, amt))
 }
+
+type GetBlockCountReq struct{}
+
+func (r *GetBlockCountReq) Name() string {
+	return "getblockcount"
+}
+
+func (b *Bitcoin) GetBlockHeight() (uint64, error) {
+	var resp uint64
+	err := b.request(&GetBlockCountReq{}, &resp)
+	return resp, err
+}
+
 
 // Because we're using a weird JSON marshaler for parameter packing
 // we encode the outputs before passing them along as a request (instead
