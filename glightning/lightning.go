@@ -26,15 +26,24 @@ func (l *Lightning) SetTimeout(secs uint) {
 	l.client.SetTimeout(secs)
 }
 
-func (l *Lightning) StartUp(rpcfile, lightningDir string) {
+func (l *Lightning) StartUp(rpcfile, lightningDir string) error {
 	up := make(chan bool)
-	go func(l *Lightning, rpcfile, lightningDir string, up chan bool) {
+	errChan := make(chan error)
+	go func(l *Lightning, rpcfile, lightningDir string, up chan bool, errChan chan error) {
 		err := l.client.SocketStart(filepath.Join(lightningDir, rpcfile), up)
 		if err != nil {
-			log.Fatal(err)
+			errChan <- err
 		}
-	}(l, rpcfile, lightningDir, up)
-	l.isUp = <-up
+	}(l, rpcfile, lightningDir, up, errChan)
+
+	for{
+		select {
+		case l.isUp = <-up:
+			return nil
+		case err := <-errChan:
+			return err
+		}
+	}
 }
 
 func (l *Lightning) Shutdown() {
@@ -2009,8 +2018,10 @@ type TxPrepare struct {
 }
 
 type TxResult struct {
-	Tx   string `json:"unsigned_tx"`
-	TxId string `json:"txid"`
+	UnsignedTx string `json:"unsigned_tx"`
+	SignedTx string `json:"tx"`
+	TxId       string `json:"txid"`
+	Psbt       string `json:"psbt"`
 }
 
 func (r *TxPrepare) Name() string {
