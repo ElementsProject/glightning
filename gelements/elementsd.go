@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"context"
 	"github.com/sputn1ck/glightning/jrpc2"
 	"io/ioutil"
 	"log"
@@ -67,28 +68,34 @@ func (b *Elements) SetTimeout(secs uint) {
 	b.httpClient = &http.Client{Transport: tr}
 }
 
-func (b *Elements) StartUp(host string, port uint) error {
+func (e *Elements) StartUp(host string, port uint) error {
 	if host == "" {
-		b.host = defaultRpcHost
+		e.host = defaultRpcHost
 	} else {
-		b.host = host
+		e.host = host
 	}
-
-	b.port = port
-
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	e.port = port
+	var lastErr error
 	for {
-		up, err := b.Ping()
-		if up {
-			break
+		select {
+		case _ = <-ctx.Done():
+			return errors.New(fmt.Sprintf("Timeout, lastErr %v", lastErr))
+		default:
+			up, err := e.Ping()
+			if up {
+				return nil
+			}
+			if err != nil {
+				lastErr = err
+			}
+			if isDebug() {
+				log.Println(err)
+			}
 		}
-		if isDebug() {
-			log.Print(err)
-		}
-		if err != nil {
-			return err
-		}
+
 	}
-	return nil
 }
 
 // Blocking!

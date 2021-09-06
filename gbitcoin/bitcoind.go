@@ -2,6 +2,7 @@ package gbitcoin
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -62,24 +63,34 @@ func (b *Bitcoin) SetTimeout(secs uint) {
 	b.httpClient = &http.Client{Transport: tr}
 }
 
-func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) {
+func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) error {
 	if host == "" {
 		b.host = defaultRpcHost
 	} else {
 		b.host = host
 	}
-
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 	b.port = port
 	b.bitcoinDir = bitcoinDir
-
+	var lastErr error
 	for {
-		up, err := b.Ping()
-		if up {
-			break
+		select {
+		case _ = <-ctx.Done():
+			return errors.New(fmt.Sprintf("Timeout, lastErr %v", lastErr))
+		default:
+			up, err := b.Ping()
+			if up {
+				return nil
+			}
+			if err != nil {
+				lastErr = err
+			}
+			if isDebug() {
+				log.Println(err)
+			}
 		}
-		if isDebug() {
-			log.Print(err)
-		}
+
 	}
 }
 
@@ -436,7 +447,6 @@ func (b *Bitcoin) GetBlockHeight() (uint64, error) {
 	err := b.request(&GetBlockCountReq{}, &resp)
 	return resp, err
 }
-
 
 // Because we're using a weird JSON marshaler for parameter packing
 // we encode the outputs before passing them along as a request (instead
