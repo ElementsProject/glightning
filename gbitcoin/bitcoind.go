@@ -79,12 +79,12 @@ func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) error {
 		case _ = <-ctx.Done():
 			return errors.New(fmt.Sprintf("Timeout, lastErr %v", lastErr))
 		default:
-			up, err := b.Ping()
-			if up {
+			err := b.Echo()
+			if err == nil {
 				return nil
 			}
 			if err != nil {
-				lastErr = err
+				return err
 			}
 			if isDebug() {
 				log.Println(err)
@@ -103,7 +103,6 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 	if err != nil {
 		return err
 	}
-
 	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
 		log.Println(string(jbytes))
 	}
@@ -172,6 +171,19 @@ func (b *Bitcoin) Ping() (bool, error) {
 	var result string
 	err := b.request(&PingRequest{}, &result)
 	return err == nil, err
+}
+
+type EchoRequest struct {
+}
+
+func (r *EchoRequest) Name() string {
+	return "echo"
+}
+
+func (b *Bitcoin) Echo() error {
+	var result interface{}
+	err := b.request(&EchoRequest{}, &result)
+	return err
 }
 
 type GetBlockChainInfoRequest struct{}

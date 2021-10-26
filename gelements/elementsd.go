@@ -2,10 +2,10 @@ package gelements
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"context"
 	"github.com/sputn1ck/glightning/jrpc2"
 	"io/ioutil"
 	"log"
@@ -83,12 +83,12 @@ func (e *Elements) StartUp(host string, port uint) error {
 		case _ = <-ctx.Done():
 			return errors.New(fmt.Sprintf("Timeout, lastErr %v", lastErr))
 		default:
-			up, err := e.Ping()
-			if up {
+			err := e.Echo()
+			if err == nil {
 				return nil
 			}
 			if err != nil {
-				lastErr = err
+				return err
 			}
 			if isDebug() {
 				log.Println(err)
@@ -176,6 +176,19 @@ func (b *Elements) Ping() (bool, error) {
 	var result string
 	err := b.request(&PingRequest{}, &result)
 	return err == nil, err
+}
+
+type EchoRequest struct {
+}
+
+func (r *EchoRequest) Name() string {
+	return "echo"
+}
+
+func (b *Elements) Echo() error {
+	var result interface{}
+	err := b.request(&EchoRequest{}, &result)
+	return err
 }
 
 type GetBlockChainInfoRequest struct{}

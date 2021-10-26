@@ -36,7 +36,7 @@ func (l *Lightning) StartUp(rpcfile, lightningDir string) error {
 		}
 	}(l, rpcfile, lightningDir, up, errChan)
 
-	for{
+	for {
 		select {
 		case l.isUp = <-up:
 			return nil
@@ -1131,7 +1131,7 @@ type SendPayRequest struct {
 	MilliSatoshis *uint64    `json:"msatoshi,omitempty"`
 	Bolt11        string     `json:"bolt11,omitempty"`
 	PaymentSecret string     `json:"payment_secret,omitempty"`
-	PartId        uint64    `json:"partid,omitempty"`
+	PartId        uint64     `json:"partid,omitempty"`
 }
 
 func (r SendPayRequest) Name() string {
@@ -1213,8 +1213,8 @@ func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat *u
 }
 
 type WaitSendPayRequest struct {
-	PaymentHash string  `json:"payment_hash"`
-	Timeout     uint    `json:"timeout,omitempty"`
+	PaymentHash string `json:"payment_hash"`
+	Timeout     uint   `json:"timeout,omitempty"`
 	PartId      uint64 `json:"partid,omitempty"`
 }
 
@@ -2019,7 +2019,7 @@ type TxPrepare struct {
 
 type TxResult struct {
 	UnsignedTx string `json:"unsigned_tx"`
-	SignedTx string `json:"tx"`
+	SignedTx   string `json:"tx"`
 	TxId       string `json:"txid"`
 	Psbt       string `json:"psbt"`
 }
