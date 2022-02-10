@@ -460,6 +460,45 @@ func (b *Bitcoin) GetBlockHeight() (uint64, error) {
 	return resp, err
 }
 
+type GetBlockHeaderReq struct {
+	BlockHash string
+	Verbose   bool
+}
+
+func (r *GetBlockHeaderReq) Name() string {
+	return "getblockheader"
+}
+
+type GetBlockHeaderRes struct {
+	Hash              string `json:"hash"`
+	Confirmations     uint32 `json:"confirmations"`
+	Height            uint32 `json:"height"`
+	Version           uint32 `json:"version"`
+	VersionHex        string `json:"versionHex"`
+	Merkleroot        string `json:"merkleroot"`
+	Time              uint64 `json:"time"`
+	Mediantime        uint64 `json:"mediantime"`
+	Nonce             uint32 `json:"nonce"`
+	Bits              string `json:"bits"`
+	Difficulty        uint64 `json:"difficulty"`
+	Chainwork         string `json:"chainwork"`
+	NTx               uint32 `json:"nTx"`
+	Previousblockhash string `json:"previousblockhash"`
+	Nextblockhash     string `json:"nextblockhash"`
+}
+
+func (b *Bitcoin) GetBlockHeader(blockHash string) (*GetBlockHeaderRes, error) {
+	var result GetBlockHeaderRes
+	err := b.request(&GetBlockHeaderReq{blockHash, true}, &result)
+
+	// return a nil rather than an empty
+	if result == (GetBlockHeaderRes{}) {
+		return nil, err
+	}
+
+	return &result, err
+}
+
 // Because we're using a weird JSON marshaler for parameter packing
 // we encode the outputs before passing them along as a request (instead
 // of writing a custom json Marshaler)

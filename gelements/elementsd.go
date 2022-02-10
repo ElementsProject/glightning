@@ -94,24 +94,20 @@ func (e *Elements) StartUp(host string, port uint) error {
 				log.Println(err)
 			}
 		}
-
 	}
 }
 
 // Blocking!
 func (b *Elements) request(m jrpc2.Method, resp interface{}) error {
-
 	id := b.NextId()
 	mr := &jrpc2.Request{id, m}
 	jbytes, err := json.Marshal(mr)
 	if err != nil {
 		return err
 	}
-
 	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
 		log.Println(string(jbytes))
 	}
-
 	req, err := http.NewRequest("POST", b.Endpoint(), bytes.NewBuffer(jbytes))
 	if err != nil {
 		return err
@@ -259,6 +255,10 @@ func (b *Elements) GetBlockHash(height uint32) (string, error) {
 	var result string
 	err := b.request(&GetBlockHashRequest{height}, &result)
 	return result, err
+}
+
+type GetBlockHeaderRequest struct {
+	BlockHash string `json:"blockhash"`
 }
 
 type BlockVerbosity uint16
@@ -712,6 +712,45 @@ func (b *Elements) GetBlockHeight() (uint64, error) {
 	return resp, err
 }
 
+type GetBlockHeaderReq struct {
+	BlockHash string
+	Verbose   bool
+}
+
+func (r *GetBlockHeaderReq) Name() string {
+	return "getblockheader"
+}
+
+type GetBlockHeaderRes struct {
+	Hash              string `json:"hash"`
+	Confirmations     uint32 `json:"confirmations"`
+	Height            uint32 `json:"height"`
+	Version           uint32 `json:"version"`
+	VersionHex        string `json:"versionHex"`
+	Merkleroot        string `json:"merkleroot"`
+	Time              uint64 `json:"time"`
+	Mediantime        uint64 `json:"mediantime"`
+	Nonce             uint32 `json:"nonce"`
+	Bits              string `json:"bits"`
+	Difficulty        uint64 `json:"difficulty"`
+	Chainwork         string `json:"chainwork"`
+	NTx               uint32 `json:"nTx"`
+	Previousblockhash string `json:"previousblockhash"`
+	Nextblockhash     string `json:"nextblockhash"`
+}
+
+func (b *Elements) GetBlockHeader(blockHash string) (*GetBlockHeaderRes, error) {
+	var result GetBlockHeaderRes
+	err := b.request(&GetBlockHeaderReq{blockHash, true}, &result)
+
+	// return a nil rather than an empty
+	if result == (GetBlockHeaderRes{}) {
+		return nil, err
+	}
+
+	return &result, err
+}
+
 type GetBalanceRequest struct {
 }
 
@@ -817,17 +856,43 @@ type WalletCreateFundedPsbtReq struct {
 	Outputs []PsbtOutput `json:"outputs"`
 }
 
-type BlindRawTransactionRes struct {
+type BlindRawTransactionReq struct {
 	HexString string `json:"hexstring"`
 }
 
-func (b *BlindRawTransactionRes) Name() string {
+func (b *BlindRawTransactionReq) Name() string {
 	return "blindrawtransaction"
 }
 
 func (e *Elements) BlindRawTransaction(hex string) (string, error) {
 	var res string
-	err := e.request(&BlindRawTransactionRes{HexString: hex}, &res)
+	err := e.request(&BlindRawTransactionReq{HexString: hex}, &res)
+	return res, err
+}
+
+type RawBlindRawTransactionReq struct {
+	HexString           string   `json:"hexstring"`
+	InputAmountBlinders []string `json:"inputamountblinders"`
+	InputAmounts        []uint64 `json:"inputamounts"`
+	InputAssets         []string `json:"inputassets"`
+	InputAssetBlinders  []string `json:"inputassetblinders"`
+	IgnoreBlindFail     bool     `json:"ignoreblindfails"`
+}
+
+func (b *RawBlindRawTransactionReq) Name() string {
+	return "rawblindrawtransaction"
+}
+
+func (e *Elements) RawBlindRawTransaction(hex string, inputAmountBlinders []string, inputAmounts []uint64, inputAssets []string, inputAssetBlinders []string) (string, error) {
+	var res string
+	err := e.request(&RawBlindRawTransactionReq{
+		HexString:           hex,
+		InputAmountBlinders: inputAmountBlinders,
+		InputAmounts:        inputAmounts,
+		InputAssets:         inputAssets,
+		InputAssetBlinders:  inputAssetBlinders,
+		IgnoreBlindFail:     true,
+	}, &res)
 	return res, err
 }
 
