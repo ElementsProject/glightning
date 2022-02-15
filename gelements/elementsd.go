@@ -732,7 +732,7 @@ type GetBlockHeaderRes struct {
 	Mediantime        uint64 `json:"mediantime"`
 	Nonce             uint32 `json:"nonce"`
 	Bits              string `json:"bits"`
-	Difficulty        uint64 `json:"difficulty"`
+	Difficulty        float64 `json:"difficulty"`
 	Chainwork         string `json:"chainwork"`
 	NTx               uint32 `json:"nTx"`
 	Previousblockhash string `json:"previousblockhash"`
