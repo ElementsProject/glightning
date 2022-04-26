@@ -501,6 +501,9 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return NewError(nil, InvalidParams, fmt.Sprintf("Types don't match. Expected a map[string]interface{} from the JSON, instead got %s", v.Kind().String()))
 		}
 		return innerParseNamed(fVal, value.(map[string]interface{}))
+	case reflect.String:
+		fVal.SetString(fmt.Sprintf("%v", v))
+		return nil
 	}
 	return NewError(nil, InvalidParams, fmt.Sprintf("Incompatible types: %s.%s (%s) != %s", targetValue.Type().Name(), fVal.Type().Name(), fVal.Kind(), v.Type().Kind()))
 }
