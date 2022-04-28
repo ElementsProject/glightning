@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sputn1ck/glightning/jrpc2"
 	"io/ioutil"
 	"log"
 	"math"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/sputn1ck/glightning/jrpc2"
 )
 
 // taken from bitcoind
@@ -652,20 +653,21 @@ func (b *Elements) CreateWallet(walletName string) (string, error) {
 }
 
 type LoadWalletReq struct {
-	FileName string `json:"filename"`
+	FileName      string `json:"filename"`
+	LoadOnStartup bool   `json:"load_on_startup"`
 }
 
 func (r *LoadWalletReq) Name() string {
 	return "loadwallet"
 }
 
-func (b *Elements) LoadWallet(fileName string) (string, error) {
+func (b *Elements) LoadWallet(fileName string, loadOnStartup bool) (string, error) {
 	var resp WalletRes
 	err := b.request(&LoadWalletReq{
-		FileName: fileName,
+		FileName:      fileName,
+		LoadOnStartup: loadOnStartup,
 	}, &resp)
 	return resp.WalletName, err
-
 }
 
 type ListWalletsReq struct{}
@@ -722,21 +724,21 @@ func (r *GetBlockHeaderReq) Name() string {
 }
 
 type GetBlockHeaderRes struct {
-	Hash              string `json:"hash"`
-	Confirmations     uint32 `json:"confirmations"`
-	Height            uint32 `json:"height"`
-	Version           uint32 `json:"version"`
-	VersionHex        string `json:"versionHex"`
-	Merkleroot        string `json:"merkleroot"`
-	Time              uint64 `json:"time"`
-	Mediantime        uint64 `json:"mediantime"`
-	Nonce             uint32 `json:"nonce"`
-	Bits              string `json:"bits"`
+	Hash              string  `json:"hash"`
+	Confirmations     uint32  `json:"confirmations"`
+	Height            uint32  `json:"height"`
+	Version           uint32  `json:"version"`
+	VersionHex        string  `json:"versionHex"`
+	Merkleroot        string  `json:"merkleroot"`
+	Time              uint64  `json:"time"`
+	Mediantime        uint64  `json:"mediantime"`
+	Nonce             uint32  `json:"nonce"`
+	Bits              string  `json:"bits"`
 	Difficulty        float64 `json:"difficulty"`
-	Chainwork         string `json:"chainwork"`
-	NTx               uint32 `json:"nTx"`
-	Previousblockhash string `json:"previousblockhash"`
-	Nextblockhash     string `json:"nextblockhash"`
+	Chainwork         string  `json:"chainwork"`
+	NTx               uint32  `json:"nTx"`
+	Previousblockhash string  `json:"previousblockhash"`
+	Nextblockhash     string  `json:"nextblockhash"`
 }
 
 func (b *Elements) GetBlockHeader(blockHash string) (*GetBlockHeaderRes, error) {
