@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/sputn1ck/glightning/glightning"
 	"log"
 	"os"
+
+	"github.com/elementsproject/glightning/glightning"
 )
 
 func main() {

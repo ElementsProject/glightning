@@ -2,14 +2,15 @@ package jrpc2_test
 
 import (
 	"bufio"
-	"github.com/sputn1ck/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"os"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/elementsproject/glightning/jrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
 type ClientSubtract struct {

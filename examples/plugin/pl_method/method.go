@@ -3,10 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/sputn1ck/glightning/glightning"
-	"github.com/sputn1ck/glightning/jrpc2"
 	"log"
 	"os"
+
+	"github.com/elementsproject/glightning/glightning"
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 type RpcMethodWithParams struct {

@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sputn1ck/glightning/jrpc2"
 	"log"
 	"path/filepath"
+
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 // This file's the one that holds all the objects for the

@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sputn1ck/glightning/jrpc2"
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 // taken from bitcoind

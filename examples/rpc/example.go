@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/sputn1ck/glightning/glightning"
 	"sync"
+
+	"github.com/elementsproject/glightning/glightning"
 )
 
 func main() {

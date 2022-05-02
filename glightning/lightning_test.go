@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/sputn1ck/glightning/glightning"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"net"
 	"os"
 	"testing"
+
+	"github.com/elementsproject/glightning/glightning"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestListTransactions(t *testing.T) {

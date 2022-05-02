@@ -3,10 +3,11 @@ package jrpc2_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/sputn1ck/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/elementsproject/glightning/jrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
 //// This section (below) is for method json marshalling,

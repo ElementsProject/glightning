@@ -11,8 +11,9 @@ package glightning
 // see https://github.com/ElementsProject/lightning/pull/3488
 // for all the implementation details, to date.
 import (
-	"github.com/sputn1ck/glightning/jrpc2"
 	"strings"
+
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 type BtcBackend_MethodName string

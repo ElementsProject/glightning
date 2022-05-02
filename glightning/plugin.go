@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/sputn1ck/glightning/jrpc2"
 	"io"
 	"log"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 type Subscription string

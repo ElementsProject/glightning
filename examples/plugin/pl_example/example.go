@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/sputn1ck/glightning/glightning"
-	"github.com/sputn1ck/glightning/jrpc2"
 	"log"
 	"os"
+
+	"github.com/elementsproject/glightning/glightning"
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 type Hello struct{}
