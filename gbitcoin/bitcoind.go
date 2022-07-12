@@ -95,6 +95,11 @@ func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) error {
 	}
 }
 
+// Request takes a raw request and issues an RPC call to bitcoind.
+func (b *Bitcoin) Request(m jrpc2.Method, resp interface{}) error {
+	return b.request(m, resp)
+}
+
 // Blocking!
 func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 
