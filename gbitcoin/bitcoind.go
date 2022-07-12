@@ -288,6 +288,29 @@ func (b *Bitcoin) GetRawBlock(blockhash string) (string, error) {
 	return result, err
 }
 
+type MempoolInfo struct {
+	Loaded           bool    `json:"loaded"`
+	Size             uint32  `json:"size"`
+	Bytes            uint64  `json:"bytes"`
+	Usage            uint32  `json:"usage"`
+	MaxMempool       uint32  `json:"maxmempool"`
+	MempoolMinFee    float64 `json:"mempoolminfee"`
+	MinRelayTxFee    float64 `json:"minrelaytxfee"`
+	UnbroadcastCount uint32  `json:"unbroadcastcount"`
+}
+
+type GetMempoolInfoReq struct{}
+
+func (r *GetMempoolInfoReq) Name() string {
+	return "getmempoolinfo"
+}
+
+func (b *Bitcoin) GetMempoolInfo() (*MempoolInfo, error) {
+	var result MempoolInfo
+	err := b.request(&GetMempoolInfoReq{}, &result)
+	return &result, err
+}
+
 type GetRawTransactionReq struct {
 	TxId      string `json:"txid"`
 	Blockhash string `json:"blockhash,omitempty"`
