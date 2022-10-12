@@ -547,7 +547,7 @@ func (l *Lightning) CreateInvoiceWithCltvExpiry(msat uint64, label, description 
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, nil, "", false, nil, cltv)
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil, cltv)
 }
 
 func (l *Lightning) Invoice(msat uint64, label, description string) (*Invoice, error) {
