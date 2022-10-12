@@ -470,6 +470,7 @@ type InvoiceRequest struct {
 	ExpirySeconds uint32   `json:"expiry,omitempty"`
 	Fallbacks     []string `json:"fallbacks,omitempty"`
 	PreImage      string   `json:"preimage,omitempty"`
+	Cltv          uint32   `json:"cltv,omitempty"`
 	// Note that these both have the same json key. we use checks
 	// to make sure that only one of them is filled in
 	ExposePrivChansFlag *bool    `json:"exposeprivatechannels,omitempty"`
@@ -500,7 +501,7 @@ type Invoice struct {
 
 // Creates an invoice with a value of "any", that can be paid with any amount
 func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
-	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage, exposePrivateChans, nil)
+	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage, exposePrivateChans, nil, 0)
 }
 
 // Creates an invoice with a value of `msat`. Label and description must be set.
@@ -532,24 +533,31 @@ func (l *Lightning) CreateInvoice(msat uint64, label, description string, expiry
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil)
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil, 0)
 }
 
 func (l *Lightning) CreateInvoiceExposing(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivChans []string) (*Invoice, error) {
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, false, exposePrivChans)
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, false, exposePrivChans, 0)
+}
+
+func (l *Lightning) CreateInvoiceWithCltvExpiry(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, willExposePrivateChans bool, cltv uint32) (*Invoice, error) {
+	if msat <= 0 {
+		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
+	}
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, nil, "", false, nil, cltv)
 }
 
 func (l *Lightning) Invoice(msat uint64, label, description string) (*Invoice, error) {
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, 0, nil, "", false, nil)
+	return createInvoice(l, fmt.Sprint(msat), label, description, 0, nil, "", false, nil, 0)
 }
 
-func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, flagExposePrivate bool, exposeShortChannelIds []string) (*Invoice, error) {
+func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, flagExposePrivate bool, exposeShortChannelIds []string, cltv uint32) (*Invoice, error) {
 
 	if label == "" {
 		return nil, fmt.Errorf("Must set a label on an invoice")
@@ -582,6 +590,7 @@ func createInvoice(l *Lightning, msat, label, description string, expirySeconds 
 		PreImage:            preimage,
 		ExposePrivChansFlag: exposePrivFlag,
 		ExposeTheseChannels: exposeShortChannelIds,
+		Cltv:                cltv,
 	}, &result)
 	return &result, err
 }
