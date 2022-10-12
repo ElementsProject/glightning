@@ -662,7 +662,7 @@ func TestSendPay(t *testing.T) {
 
 	paymentHash := "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993"
 	partid := uint64(1)
-	invoice, err := lightning.SendPay(route, paymentHash, "", nil, "", "hello", &partid)
+	invoice, err := lightning.SendPay(route, paymentHash, "", nil, "", "hello", partid)
 	if err != nil {
 		t.Fatal(err)
 	}
