@@ -460,6 +460,14 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64:
+		// Check on zero value as we can not reflect Type on zero
+		// value without panicking. An empty value is handled by
+		// golang as the default field value, eg: uint64 -> 0. How a
+		// default value is handled should be decided by the
+		// plugin.
+		if isZero(v) {
+			return nil
+		}
 		// float32 won't happen because of the json parser we're using
 		if v.Type().Kind() != reflect.Float64 {
 			return NewError(nil, InvalidParams, fmt.Sprintf("Expecting float64 input for %s.%s, but got %s", targetValue.Type().Name(), fVal.Type().Name(), v.Type()))
