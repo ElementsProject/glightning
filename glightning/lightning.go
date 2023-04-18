@@ -1176,7 +1176,9 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 }
 
 // Send along {route} in return for preimage of {paymentHash}
-//  Description and msat are optional.
+//
+//	Description and msat are optional.
+//
 // Generally a client would call GetRoute to resolve a route, then
 // use SendPay to send it.  If it fails, it would call GetRoute again
 // to retry.
@@ -1691,7 +1693,7 @@ func (l *Lightning) CloseToTimeoutWithStep(id string, timeout uint, destination,
 // Close the channel with peer {id}, timing out with {timeout} seconds, at whence a
 // unilateral close is initiated.
 //
-// If unspecified, forces a close (timesout) in 48hours
+// # If unspecified, forces a close (timesout) in 48hours
 //
 // Can pass either peer id or channel id as {id} field.
 //
@@ -2113,7 +2115,7 @@ type FundOutput struct {
 	TxId               string `json:"txid"`
 	Output             int    `json:"output"`
 	Value              uint64 `json:"value"`
-	AmountMilliSatoshi string `json:"amount_msat"`
+	AmountMilliSatoshi uint64 `json:"amount_msat"`
 	Address            string `json:"address"`
 	Status             string `json:"status"`
 	Blockheight        int    `json:"blockheight,omitempty"`
@@ -2122,8 +2124,8 @@ type FundOutput struct {
 type FundingChannel struct {
 	Id                    string `json:"peer_id"`
 	ShortChannelId        string `json:"short_channel_id"`
-	OurAmountMilliSatoshi string `json:"our_amount_msat"`
-	AmountMilliSatoshi    string `json:"amount_msat"`
+	OurAmountMilliSatoshi uint64 `json:"our_amount_msat"`
+	AmountMilliSatoshi    uint64 `json:"amount_msat"`
 	ChannelSatoshi        uint64 `json:"channel_sat"`
 	ChannelTotalSatoshi   uint64 `json:"channel_total_sat"`
 	FundingTxId           string `json:"funding_txid"`
@@ -2149,11 +2151,11 @@ type Forwarding struct {
 	InChannel       string  `json:"in_channel"`
 	OutChannel      string  `json:"out_channel"`
 	MilliSatoshiIn  uint64  `json:"in_msatoshi"`
-	InMsat          string  `json:"in_msat"`
+	InMsat          uint64  `json:"in_msat"`
 	MilliSatoshiOut uint64  `json:"out_msatoshi"`
-	OutMsat         string  `json:"out_msat"`
+	OutMsat         uint64  `json:"out_msat"`
 	Fee             uint64  `json:"fee"`
-	FeeMsat         string  `json:"fee_msat"`
+	FeeMsat         uint64  `json:"fee_msat"`
 	Status          string  `json:"status"`
 	PaymentHash     string  `json:"payment_hash"`
 	FailCode        int     `json:"failcode"`
@@ -2431,10 +2433,13 @@ type SharedSecretResp struct {
 	SharedSecret string `json:"shared_secret"`
 }
 
-/* Returns the shared secret, a hexadecimal string of the 256-bit SHA-2 of the
-   compressed public key DER-encoding of the  SECP256K1  point  that  is  the
-   shared secret generated using the Elliptic Curve Diffie-Hellman algorithm.
-   This field is 32 bytes (64 hexadecimal characters in a string). */
+/*
+Returns the shared secret, a hexadecimal string of the 256-bit SHA-2 of the
+
+	compressed public key DER-encoding of the  SECP256K1  point  that  is  the
+	shared secret generated using the Elliptic Curve Diffie-Hellman algorithm.
+	This field is 32 bytes (64 hexadecimal characters in a string).
+*/
 func (l *Lightning) GetSharedSecret(point string) (string, error) {
 	var result SharedSecretResp
 	err := l.client.Request(&SharedSecretRequest{point}, &result)
@@ -2447,7 +2452,8 @@ var Lightning_RpcMethods map[string](func() jrpc2.Method)
 // we register all of the methods here, so the rpc command
 // hook in the plugin works as expected
 // FIXME: have this registry be generated dynamically
-//        at build
+//
+//	at build
 func init() {
 	Lightning_RpcMethods = make(map[string]func() jrpc2.Method)
 
