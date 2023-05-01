@@ -663,11 +663,11 @@ func TestSubscription_Forwarding(t *testing.T) {
 			InChannel:       "103x2x1",
 			OutChannel:      "110x1x0",
 			MilliSatoshiIn:  100001001,
-			InMsat:          "100001001msat",
+			InMsat:          100001001,
 			MilliSatoshiOut: 100000000,
-			OutMsat:         "100000000msat",
+			OutMsat:         100000000,
 			Fee:             1001,
-			FeeMsat:         "1001msat",
+			FeeMsat:         1001,
 			Status:          "local_failed",
 			PaymentHash:     "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 			FailCode:        16392,
@@ -677,7 +677,7 @@ func TestSubscription_Forwarding(t *testing.T) {
 		assert.Equal(t, expected, event)
 	})
 
-	msg := `{"jsonrpc":"2.0","method":"forward_event","params":{"forward_event":{"payment_hash":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","in_channel":"103x2x1","out_channel":"110x1x0","in_msatoshi":100001001,"in_msat":"100001001msat","out_msatoshi":100000000,"out_msat":"100000000msat","fee":1001,"fee_msat":"1001msat","status":"local_failed","failcode":16392,"failreason":"WIRE_PERMANENT_CHANNEL_FAILURE","received_time":1560696343.052}}}`
+	msg := `{"jsonrpc":"2.0","method":"forward_event","params":{"forward_event":{"payment_hash":"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff","in_channel":"103x2x1","out_channel":"110x1x0","in_msatoshi":100001001,"in_msat":"100001001msat","out_msatoshi":100000000,"out_msat":100000000,"fee":1001,"fee_msat":1001,"status":"local_failed","failcode":16392,"failreason":"WIRE_PERMANENT_CHANNEL_FAILURE","received_time":1560696343.052}}}`
 
 	runTest(t, plugin, msg+"\n\n", "")
 }

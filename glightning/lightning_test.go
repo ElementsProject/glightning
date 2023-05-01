@@ -280,11 +280,11 @@ func TestListForwards(t *testing.T) {
          "in_channel": "1231x2x0",
          "out_channel": "1231x1x0",
          "in_msatoshi": 10002,
-         "in_msat": "10002msat",
+         "in_msat": 10002,
          "out_msatoshi": 100000,
-         "out_msat": "10000msat",
+         "out_msat": 10000,
          "fee": 2,
-         "fee_msat": "2msat",
+         "fee_msat": 2,
          "status": "settled",
          "received_time": 1565810857.345,
          "resolved_time": 1565810858.454
@@ -294,11 +294,11 @@ func TestListForwards(t *testing.T) {
 	  "in_channel": "103x2x1",
 	  "out_channel": "110x1x0",
 	  "in_msatoshi": 100001001,
-	  "in_msat": "100001001msat",
+	  "in_msat": 100001001,
 	  "out_msatoshi": 100000000,
-	  "out_msat": "100000000msat",
+	  "out_msat": 100000000,
 	  "fee": 1001,
-	  "fee_msat": "1001msat",
+	  "fee_msat": 1001,
 	  "status": "local_failed",
 	  "failcode": 16392,
 	  "failreason": "WIRE_PERMANENT_CHANNEL_FAILURE",
@@ -317,11 +317,11 @@ func TestListForwards(t *testing.T) {
 			InChannel:       "1231x2x0",
 			OutChannel:      "1231x1x0",
 			MilliSatoshiIn:  10002,
-			InMsat:          "10002msat",
+			InMsat:          10002,
 			MilliSatoshiOut: 100000,
-			OutMsat:         "10000msat",
+			OutMsat:         10000,
 			Fee:             2,
-			FeeMsat:         "2msat",
+			FeeMsat:         2,
 			Status:          "settled",
 			ReceivedTime:    1565810857.345,
 			ResolvedTime:    1565810858.454,
@@ -331,11 +331,11 @@ func TestListForwards(t *testing.T) {
 			InChannel:       "103x2x1",
 			OutChannel:      "110x1x0",
 			MilliSatoshiIn:  100001001,
-			InMsat:          "100001001msat",
+			InMsat:          100001001,
 			MilliSatoshiOut: 100000000,
-			OutMsat:         "100000000msat",
+			OutMsat:         100000000,
 			Fee:             1001,
-			FeeMsat:         "1001msat",
+			FeeMsat:         1001,
 			Status:          "local_failed",
 			PaymentHash:     "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 			FailCode:        16392,
@@ -1230,7 +1230,7 @@ func TestListFunds(t *testing.T) {
       "txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
       "output": 1,
       "value": 1250000000,
-      "amount_msat": "1250000000000msat",
+      "amount_msat": 1250000000000,
       "address": "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
       "status": "confirmed",
       "blockheight": 1085
@@ -1239,7 +1239,7 @@ func TestListFunds(t *testing.T) {
          "txid": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
          "output": 1,
          "value": 99799846,
-         "amount_msat": "99799846000msat",
+         "amount_msat": 99799846000,
          "address": "bcrt1qkzeapc8ch9fzy39hhfku4m945k3j32c6hgqkzl",
          "status": "unconfirmed"
       }
@@ -1250,9 +1250,9 @@ func TestListFunds(t *testing.T) {
          "connected": true,
          "state": "CHANNELD_AWAITING_LOCKIN",
          "channel_sat": 200000,
-         "our_amount_msat": "200000000msat",
+         "our_amount_msat": 200000000,
          "channel_total_sat": 200000,
-         "amount_msat": "200000000msat",
+         "amount_msat": 200000000,
          "funding_txid": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
          "funding_output": 0
       }
@@ -1270,7 +1270,7 @@ func TestListFunds(t *testing.T) {
 				TxId:               "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
 				Output:             1,
 				Value:              uint64(1250000000),
-				AmountMilliSatoshi: "1250000000000msat",
+				AmountMilliSatoshi: 1250000000000,
 				Address:            "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
 				Status:             "confirmed",
 				Blockheight:        1085,
@@ -1279,7 +1279,7 @@ func TestListFunds(t *testing.T) {
 				TxId:               "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 				Output:             1,
 				Value:              uint64(99799846),
-				AmountMilliSatoshi: "99799846000msat",
+				AmountMilliSatoshi: 99799846000,
 				Address:            "bcrt1qkzeapc8ch9fzy39hhfku4m945k3j32c6hgqkzl",
 				Status:             "unconfirmed",
 			},
@@ -1288,8 +1288,8 @@ func TestListFunds(t *testing.T) {
 			&glightning.FundingChannel{
 				Id:                    "020e31bda574c36fa78ba2664ccf47b3f632f157a7b3e139de9ed396455c0f14de",
 				ChannelSatoshi:        200000,
-				AmountMilliSatoshi:    "200000000msat",
-				OurAmountMilliSatoshi: "200000000msat",
+				AmountMilliSatoshi:    200000000,
+				OurAmountMilliSatoshi: 200000000,
 				ChannelTotalSatoshi:   200000,
 				FundingTxId:           "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 				FundingOutput:         0,
@@ -2418,10 +2418,10 @@ func TestGetSharedSecret(t *testing.T) {
 	assert.Equal(t, "b6bd6a8327b5437fb64f202bdc388490841b6cf96057f6b74a0c6a61408aa88d", ss)
 }
 
-func TestDevSendCustomMessage(t *testing.T) {
+func TestSendCustomMessage(t *testing.T) {
 	peer := "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96"
 	msg := "aaffff"
-	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"dev-sendcustommsg","params":{"msg":"%s","node_id":"%s"},"id":1}`, msg, peer)
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"sendcustommsg","params":{"msg":"%s","node_id":"%s"},"id":1}`, msg, peer)
 	resp := wrapResult(1, `{
    "status": "Message sent to subdaemon channeld for delivery"
 	}`)
