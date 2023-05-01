@@ -115,13 +115,13 @@ type PeerChannel struct {
 	Private                          bool              `json:"private"`
 	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat"`
 	FundingMsat                      map[string]string `json:"funding_msat"`
-	MilliSatoshiToUs                 uint64            `json:"msatoshi_to_us"`
+	MilliSatoshiToUs                 uint64            `json:"msatoshi_to_us,omitempty"`
 	ToUsMsat                         string            `json:"to_us_msat"`
-	MilliSatoshiToUsMin              uint64            `json:"msatoshi_to_us_min"`
+	MilliSatoshiToUsMin              uint64            `json:"msatoshi_to_us_min,omitempty"`
 	MinToUsMsat                      string            `json:"min_to_us_msat"`
-	MilliSatoshiToUsMax              uint64            `json:"msatoshi_to_us_max"`
+	MilliSatoshiToUsMax              uint64            `json:"msatoshi_to_us_max,omitempty"`
 	MaxToUsMsat                      string            `json:"max_to_us_msat"`
-	MilliSatoshiTotal                uint64            `json:"msatoshi_total"`
+	MilliSatoshiTotal                uint64            `json:"msatoshi_total,omitempty"`
 	TotalMsat                        string            `json:"total_msat"`
 	DustLimitSatoshi                 uint64            `json:"dust_limit_satoshis"`
 	DustLimitMsat                    string            `json:"dust_limit_msat"`
@@ -131,9 +131,9 @@ type PeerChannel struct {
 	TheirReserveMsat                 string            `json:"their_reserve_msat"`
 	OurChannelReserveSatoshi         uint64            `json:"our_channel_reserve_satoshis"`
 	OurReserveMsat                   string            `json:"our_reserve_msat"`
-	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi"`
+	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi,omitempty"`
 	SpendableMsat                    string            `json:"spendable_msat"`
-	ReceivableMilliSatoshi           uint64            `json:"receivable_msatoshi"`
+	ReceivableMilliSatoshi           uint64            `json:"receivable_msatoshi,omitempty"`
 	ReceivableMsat                   string            `json:"receivable_msat"`
 	HtlcMinMilliSatoshi              uint64            `json:"htlc_minimum_msat"`
 	MinimumHtlcInMsat                string            `json:"minimum_htlc_in_msat"`
@@ -141,16 +141,16 @@ type PeerChannel struct {
 	OurToSelfDelay                   uint              `json:"our_to_self_delay"`
 	MaxAcceptedHtlcs                 uint              `json:"max_accepted_htlcs"`
 	InPaymentsOffered                uint64            `json:"in_payments_offered"`
-	InMilliSatoshiOffered            uint64            `json:"in_msatoshi_offered"`
+	InMilliSatoshiOffered            uint64            `json:"in_msatoshi_offered,omitempty"`
 	IncomingOfferedMsat              string            `json:"in_offered_msat"`
 	InPaymentsFulfilled              uint64            `json:"in_payments_fulfilled"`
-	InMilliSatoshiFulfilled          uint64            `json:"in_msatoshi_fulfilled"`
+	InMilliSatoshiFulfilled          uint64            `json:"in_msatoshi_fulfilled,omitempty"`
 	IncomingFulfilledMsat            string            `json:"in_fulfilled_msat"`
 	OutPaymentsOffered               uint64            `json:"out_payments_offered"`
-	OutMilliSatoshiOffered           uint64            `json:"out_msatoshi_offered"`
+	OutMilliSatoshiOffered           uint64            `json:"out_msatoshi_offered,omitempty"`
 	OutgoingOfferedMsat              string            `json:"out_offered_msat"`
 	OutPaymentsFulfilled             uint64            `json:"out_payments_fulfilled"`
-	OutMilliSatoshiFulfilled         uint64            `json:"out_msatoshi_fulfilled"`
+	OutMilliSatoshiFulfilled         uint64            `json:"out_msatoshi_fulfilled,omitempty"`
 	OutgoingFulfilledMsat            string            `json:"out_fulfilled_msat"`
 	Htlcs                            []*Htlc           `json:"htlcs"`
 }
@@ -255,7 +255,7 @@ func (l *Lightning) getNodes(nodeId string) ([]*Node, error) {
 
 type RouteRequest struct {
 	PeerId        string   `json:"id"`
-	MilliSatoshis uint64   `json:"msatoshi"`
+	MilliSatoshis uint64   `json:"msatoshi,omitempty"`
 	RiskFactor    float32  `json:"riskfactor"`
 	Cltv          uint     `json:"cltv"`
 	FromId        string   `json:"fromid,omitempty"`
@@ -272,7 +272,7 @@ type Route struct {
 type RouteHop struct {
 	Id             string `json:"id"`
 	ShortChannelId string `json:"channel"`
-	MilliSatoshi   uint64 `json:"msatoshi"`
+	MilliSatoshi   uint64 `json:"msatoshi,omitempty"`
 	AmountMsat     string `json:"amount_msat,omitempty"`
 	Delay          uint   `json:"delay"`
 	Direction      uint8  `json:"direction,omitempty"`
@@ -464,7 +464,7 @@ func (l *Lightning) ListChannels() ([]*Channel, error) {
 }
 
 type InvoiceRequest struct {
-	MilliSatoshis string   `json:"msatoshi"`
+	MilliSatoshis string   `json:"msatoshi,omitempty"`
 	Label         string   `json:"label"`
 	Description   string   `json:"description"`
 	ExpirySeconds uint32   `json:"expiry,omitempty"`
@@ -754,7 +754,7 @@ type DecodedBolt11 struct {
 	CreatedAt          uint64        `json:"created_at"`
 	Expiry             uint64        `json:"expiry"`
 	Payee              string        `json:"payee"`
-	MilliSatoshis      uint64        `json:"msatoshi"`
+	MilliSatoshis      uint64        `json:"msatoshi,omitempty"`
 	AmountMsat         string        `json:"amount_msat"`
 	Description        string        `json:"description"`
 	DescriptionHash    string        `json:"description_hash"`
@@ -808,7 +808,7 @@ func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 
 type PayStatus struct {
 	Bolt11       string       `json:"bolt11"`
-	MilliSatoshi uint64       `json:"msatoshi"`
+	MilliSatoshi uint64       `json:"msatoshi,omitempty"`
 	AmountMsat   string       `json:"amount_msat"`
 	Destination  string       `json:"destination"`
 	Attempts     []PayAttempt `json:"attempts"`
@@ -1051,7 +1051,7 @@ type NodeInfo struct {
 	Version                    string            `json:"version"`
 	Blockheight                uint              `json:"blockheight"`
 	Network                    string            `json:"network"`
-	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
+	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected,omitempty"`
 	FeesCollected              string            `json:"fees_collected_msat"`
 	LightningDir               string            `json:"lightning-dir"`
 	WarningBitcoinSync         string            `json:"warning_bitcoind_sync,omitempty"`
@@ -1154,7 +1154,7 @@ type SendPayFields struct {
 	Destination           string  `json:"destination,omitempty"`
 	AmountMilliSatoshiRaw uint64  `json:"msatoshi,omitempty"`
 	AmountMilliSatoshi    string  `json:"amount_msat"`
-	MilliSatoshiSentRaw   uint64  `json:"msatoshi_sent"`
+	MilliSatoshiSentRaw   uint64  `json:"msatoshi_sent,omitempty"`
 	MilliSatoshiSent      string  `json:"amount_sent_msat"`
 	CreatedAt             float64 `json:"created_at"`
 	Status                string  `json:"status"`
@@ -2150,9 +2150,9 @@ func (r *ListForwardsRequest) Name() string {
 type Forwarding struct {
 	InChannel       string  `json:"in_channel"`
 	OutChannel      string  `json:"out_channel"`
-	MilliSatoshiIn  uint64  `json:"in_msatoshi"`
+	MilliSatoshiIn  uint64  `json:"in_msatoshi,omitempty"`
 	InMsat          uint64  `json:"in_msat"`
-	MilliSatoshiOut uint64  `json:"out_msatoshi"`
+	MilliSatoshiOut uint64  `json:"out_msatoshi,omitempty"`
 	OutMsat         uint64  `json:"out_msat"`
 	Fee             uint64  `json:"fee"`
 	FeeMsat         uint64  `json:"fee_msat"`
