@@ -6,9 +6,98 @@ import (
 	"fmt"
 	"log"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/elementsproject/glightning/jrpc2"
 )
+
+var version string
+
+type Amount struct {
+	msat uint64
+}
+
+func AmountFromMSat(amt uint64) Amount {
+	return Amount{msat: amt}
+}
+
+func AmountFromSat(amt uint64) Amount {
+	return Amount{msat: amt * 1_000}
+}
+
+func AmountFromBtc(amt uint64) Amount {
+	return Amount{msat: amt * 100_000_000_000}
+}
+
+func (a Amount) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.msat)
+}
+
+func (a *Amount) UnmarshalJSON(b []byte) error {
+	var number uint64
+	var err error
+
+	// Check if the data represents a JSON string
+	if b[0] == '"' && b[len(b)-1] == '"' {
+		strData := string(b[1 : len(b)-1])
+		strData = strings.TrimRight(strData, "msat")
+		number, err = strconv.ParseUint(strData, 10, 64)
+		if err != nil {
+			return err
+		}
+	} else {
+		// If it's not a string, try parsing as a JSON number
+		err = json.Unmarshal(b, &number)
+		if err != nil {
+			return err
+		}
+	}
+
+	a.msat = number
+	return nil
+}
+
+// func (a *Amount) UnmarshalJSON(b []byte) error {
+// 	var v string
+// 	err := json.Unmarshal(b, &v)
+// 	if err != nil {
+// 		fmt.Printf("ERROR %v", err)
+// 		return err
+// 	}
+// 	v = strings.TrimRight(v, "msat")
+
+// 	d, err := strconv.ParseUint(v, 10, 64)
+// 	if err != nil {
+// 		return fmt.Errorf("can not convert %s to int: %v", v, err)
+// 	}
+// 	a.msat = d
+// 	return nil
+// }
+
+func (a Amount) String() string {
+	return strconv.FormatUint(a.msat, 10)
+}
+
+func (a Amount) MSat() uint64 {
+	return a.msat
+}
+
+type AmountOrAny struct {
+	val interface{}
+}
+
+func AmountAny() AmountOrAny {
+	return AmountOrAny{val: "any"}
+}
+
+func AmountOrAnyFromAmount(msat uint64) AmountOrAny {
+	return AmountOrAny{val: msat}
+}
+
+func (a AmountOrAny) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.val)
+}
 
 // This file's the one that holds all the objects for the
 // c-lightning RPC commands
@@ -113,45 +202,45 @@ type PeerChannel struct {
 	CloseToScript                    string            `json:"close_to,omitempty"`
 	Status                           []string          `json:"status"`
 	Private                          bool              `json:"private"`
-	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat"`
-	FundingMsat                      map[string]string `json:"funding_msat"`
+	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat,omitempty"`
+	FundingMsat                      map[string]Amount `json:"funding_msat,omitempty"`
 	MilliSatoshiToUs                 uint64            `json:"msatoshi_to_us,omitempty"`
-	ToUsMsat                         string            `json:"to_us_msat"`
+	ToUsMsat                         Amount            `json:"to_us_msat"`
 	MilliSatoshiToUsMin              uint64            `json:"msatoshi_to_us_min,omitempty"`
-	MinToUsMsat                      string            `json:"min_to_us_msat"`
+	MinToUsMsat                      Amount            `json:"min_to_us_msat"`
 	MilliSatoshiToUsMax              uint64            `json:"msatoshi_to_us_max,omitempty"`
-	MaxToUsMsat                      string            `json:"max_to_us_msat"`
+	MaxToUsMsat                      Amount            `json:"max_to_us_msat"`
 	MilliSatoshiTotal                uint64            `json:"msatoshi_total,omitempty"`
-	TotalMsat                        string            `json:"total_msat"`
+	TotalMsat                        Amount            `json:"total_msat"`
 	DustLimitSatoshi                 uint64            `json:"dust_limit_satoshis"`
-	DustLimitMsat                    string            `json:"dust_limit_msat"`
+	DustLimitMsat                    Amount            `json:"dust_limit_msat"`
 	MaxHtlcValueInFlightMilliSatoshi uint64            `json:"max_htlc_value_in_flight_msat"`
-	MaxHtlcValueInFlightMsat         string            `json:"max_total_htlc_in_msat"`
+	MaxHtlcValueInFlightMsat         Amount            `json:"max_total_htlc_in_msat"`
 	TheirChannelReserveSatoshi       uint64            `json:"their_channel_reserve_satoshis"`
-	TheirReserveMsat                 string            `json:"their_reserve_msat"`
+	TheirReserveMsat                 Amount            `json:"their_reserve_msat"`
 	OurChannelReserveSatoshi         uint64            `json:"our_channel_reserve_satoshis"`
-	OurReserveMsat                   string            `json:"our_reserve_msat"`
+	OurReserveMsat                   Amount            `json:"our_reserve_msat"`
 	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi,omitempty"`
-	SpendableMsat                    string            `json:"spendable_msat"`
+	SpendableMsat                    Amount            `json:"spendable_msat"`
 	ReceivableMilliSatoshi           uint64            `json:"receivable_msatoshi,omitempty"`
-	ReceivableMsat                   string            `json:"receivable_msat"`
+	ReceivableMsat                   Amount            `json:"receivable_msat"`
 	HtlcMinMilliSatoshi              uint64            `json:"htlc_minimum_msat"`
-	MinimumHtlcInMsat                string            `json:"minimum_htlc_in_msat"`
+	MinimumHtlcInMsat                Amount            `json:"minimum_htlc_in_msat"`
 	TheirToSelfDelay                 uint              `json:"their_to_self_delay"`
 	OurToSelfDelay                   uint              `json:"our_to_self_delay"`
 	MaxAcceptedHtlcs                 uint              `json:"max_accepted_htlcs"`
 	InPaymentsOffered                uint64            `json:"in_payments_offered"`
 	InMilliSatoshiOffered            uint64            `json:"in_msatoshi_offered,omitempty"`
-	IncomingOfferedMsat              string            `json:"in_offered_msat"`
+	IncomingOfferedMsat              Amount            `json:"in_offered_msat"`
 	InPaymentsFulfilled              uint64            `json:"in_payments_fulfilled"`
 	InMilliSatoshiFulfilled          uint64            `json:"in_msatoshi_fulfilled,omitempty"`
-	IncomingFulfilledMsat            string            `json:"in_fulfilled_msat"`
+	IncomingFulfilledMsat            Amount            `json:"in_fulfilled_msat"`
 	OutPaymentsOffered               uint64            `json:"out_payments_offered"`
 	OutMilliSatoshiOffered           uint64            `json:"out_msatoshi_offered,omitempty"`
-	OutgoingOfferedMsat              string            `json:"out_offered_msat"`
+	OutgoingOfferedMsat              Amount            `json:"out_offered_msat"`
 	OutPaymentsFulfilled             uint64            `json:"out_payments_fulfilled"`
 	OutMilliSatoshiFulfilled         uint64            `json:"out_msatoshi_fulfilled,omitempty"`
-	OutgoingFulfilledMsat            string            `json:"out_fulfilled_msat"`
+	OutgoingFulfilledMsat            Amount            `json:"out_fulfilled_msat"`
 	Htlcs                            []*Htlc           `json:"htlcs"`
 }
 
@@ -159,7 +248,7 @@ type Htlc struct {
 	Direction    string `json:"direction"`
 	Id           uint64 `json:"id"`
 	MilliSatoshi uint64 `json:"msatoshi"`
-	AmountMsat   string `json:"amount_msat"`
+	AmountMsat   Amount `json:"amount_msat"`
 	Expiry       uint64 `json:"expiry"`
 	PaymentHash  string `json:"payment_hash"`
 	State        string `json:"state"`
@@ -255,7 +344,7 @@ func (l *Lightning) getNodes(nodeId string) ([]*Node, error) {
 
 type RouteRequest struct {
 	PeerId        string   `json:"id"`
-	MilliSatoshis uint64   `json:"msatoshi,omitempty"`
+	MilliSatoshis uint64   `json:"amount_msat,omitempty"`
 	RiskFactor    float32  `json:"riskfactor"`
 	Cltv          uint     `json:"cltv"`
 	FromId        string   `json:"fromid,omitempty"`
@@ -272,10 +361,9 @@ type Route struct {
 type RouteHop struct {
 	Id             string `json:"id"`
 	ShortChannelId string `json:"channel"`
-	MilliSatoshi   uint64 `json:"msatoshi,omitempty"`
-	AmountMsat     string `json:"amount_msat,omitempty"`
-	Delay          uint   `json:"delay"`
-	Direction      uint8  `json:"direction,omitempty"`
+	AmountMsat     Amount `json:"amount_msat,omitempty"`
+	Delay          uint32 `json:"delay"`
+	Direction      uint32 `json:"direction,omitempty"`
 }
 
 func (rr RouteRequest) Name() string {
@@ -343,7 +431,7 @@ type SendOnionRequest struct {
 type FirstHop struct {
 	ShortChannelId string `json:"channel"`
 	Direction      uint8  `json:"direction"`
-	AmountMsat     string `json:"amount_msat"`
+	AmountMsat     Amount `json:"amount_msat"`
 	Delay          uint   `json:"delay"`
 }
 
@@ -427,7 +515,7 @@ type Channel struct {
 	ShortChannelId           string `json:"short_channel_id"`
 	IsPublic                 bool   `json:"public"`
 	Satoshis                 uint64 `json:"satoshis"`
-	AmountMsat               string `json:"amount_msat"`
+	AmountMsat               Amount `json:"amount_msat"`
 	MessageFlags             uint   `json:"message_flags"`
 	ChannelFlags             uint   `json:"channel_flags"`
 	IsActive                 bool   `json:"active"`
@@ -435,8 +523,8 @@ type Channel struct {
 	BaseFeeMillisatoshi      uint64 `json:"base_fee_millisatoshi"`
 	FeePerMillionth          uint64 `json:"fee_per_millionth"`
 	Delay                    uint   `json:"delay"`
-	HtlcMinimumMilliSatoshis string `json:"htlc_minimum_msat"`
-	HtlcMaximumMilliSatoshis string `json:"htlc_maximum_msat"`
+	HtlcMinimumMilliSatoshis Amount `json:"htlc_minimum_msat"`
+	HtlcMaximumMilliSatoshis Amount `json:"htlc_maximum_msat"`
 }
 
 // Get channel by {shortChanId}
@@ -464,13 +552,13 @@ func (l *Lightning) ListChannels() ([]*Channel, error) {
 }
 
 type InvoiceRequest struct {
-	MilliSatoshis string   `json:"msatoshi,omitempty"`
-	Label         string   `json:"label"`
-	Description   string   `json:"description"`
-	ExpirySeconds uint32   `json:"expiry,omitempty"`
-	Fallbacks     []string `json:"fallbacks,omitempty"`
-	PreImage      string   `json:"preimage,omitempty"`
-	Cltv          uint32   `json:"cltv,omitempty"`
+	MilliSatoshis AmountOrAny `json:"amount_msat"`
+	Label         string      `json:"label"`
+	Description   string      `json:"description"`
+	ExpirySeconds uint32      `json:"expiry,omitempty"`
+	Fallbacks     []string    `json:"fallbacks,omitempty"`
+	PreImage      string      `json:"preimage,omitempty"`
+	Cltv          uint32      `json:"cltv,omitempty"`
 	// Note that these both have the same json key. we use checks
 	// to make sure that only one of them is filled in
 	ExposePrivChansFlag *bool    `json:"exposeprivatechannels,omitempty"`
@@ -485,12 +573,12 @@ type Invoice struct {
 	Label                   string `json:"label"`
 	Bolt11                  string `json:"bolt11"`
 	PaymentHash             string `json:"payment_hash"`
-	AmountMilliSatoshi      string `json:"amount_msat,omitempty"`
+	AmountMilliSatoshi      Amount `json:"amount_msat,omitempty"`
 	AmountMilliSatoshiRaw   uint64 `json:"msatoshi,omitempty"`
 	Status                  string `json:"status"`
 	PayIndex                uint64 `json:"pay_index,omitempty"`
 	MilliSatoshiReceivedRaw uint64 `json:"msatoshi_received,omitempty"`
-	MilliSatoshiReceived    string `json:"amount_received_msat,omitempty"`
+	MilliSatoshiReceived    Amount `json:"amount_received_msat,omitempty"`
 	PaidAt                  uint64 `json:"paid_at,omitempty"`
 	PaymentPreImage         string `json:"payment_preimage,omitempty"`
 	WarningOffline          string `json:"warning_offline,omitempty"`
@@ -501,7 +589,7 @@ type Invoice struct {
 
 // Creates an invoice with a value of "any", that can be paid with any amount
 func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
-	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage, exposePrivateChans, nil, 0)
+	return createInvoice(l, AmountAny(), label, description, expirySeconds, fallbacks, preimage, exposePrivateChans, nil, 0)
 }
 
 // Creates an invoice with a value of `msat`. Label and description must be set.
@@ -533,31 +621,31 @@ func (l *Lightning) CreateInvoice(msat uint64, label, description string, expiry
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil, 0)
+	return createInvoice(l, AmountOrAnyFromAmount(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil, 0)
 }
 
 func (l *Lightning) CreateInvoiceExposing(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivChans []string) (*Invoice, error) {
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, false, exposePrivChans, 0)
+	return createInvoice(l, AmountOrAnyFromAmount(msat), label, description, expirySeconds, fallbacks, preimage, false, exposePrivChans, 0)
 }
 
 func (l *Lightning) CreateInvoiceWithCltvExpiry(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, willExposePrivateChans bool, cltv uint32) (*Invoice, error) {
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil, cltv)
+	return createInvoice(l, AmountOrAnyFromAmount(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil, cltv)
 }
 
 func (l *Lightning) Invoice(msat uint64, label, description string) (*Invoice, error) {
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, 0, nil, "", false, nil, 0)
+	return createInvoice(l, AmountOrAnyFromAmount(msat), label, description, 0, nil, "", false, nil, 0)
 }
 
-func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, flagExposePrivate bool, exposeShortChannelIds []string, cltv uint32) (*Invoice, error) {
+func createInvoice(l *Lightning, msat AmountOrAny, label, description string, expirySeconds uint32, fallbacks []string, preimage string, flagExposePrivate bool, exposeShortChannelIds []string, cltv uint32) (*Invoice, error) {
 
 	if label == "" {
 		return nil, fmt.Errorf("Must set a label on an invoice")
@@ -755,7 +843,7 @@ type DecodedBolt11 struct {
 	Expiry             uint64        `json:"expiry"`
 	Payee              string        `json:"payee"`
 	MilliSatoshis      uint64        `json:"msatoshi,omitempty"`
-	AmountMsat         string        `json:"amount_msat"`
+	AmountMsat         Amount        `json:"amount_msat"`
 	Description        string        `json:"description"`
 	DescriptionHash    string        `json:"description_hash"`
 	MinFinalCltvExpiry int           `json:"min_final_cltv_expiry"`
@@ -809,7 +897,7 @@ func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 type PayStatus struct {
 	Bolt11       string       `json:"bolt11"`
 	MilliSatoshi uint64       `json:"msatoshi,omitempty"`
-	AmountMsat   string       `json:"amount_msat"`
+	AmountMsat   Amount       `json:"amount_msat"`
 	Destination  string       `json:"destination"`
 	Attempts     []PayAttempt `json:"attempts"`
 }
@@ -1052,7 +1140,7 @@ type NodeInfo struct {
 	Blockheight                uint              `json:"blockheight"`
 	Network                    string            `json:"network"`
 	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected,omitempty"`
-	FeesCollected              string            `json:"fees_collected_msat"`
+	FeesCollected              Amount            `json:"fees_collected_msat"`
 	LightningDir               string            `json:"lightning-dir"`
 	WarningBitcoinSync         string            `json:"warning_bitcoind_sync,omitempty"`
 	WarningLightningSync       string            `json:"warning_lightningd_sync,omitempty"`
@@ -1138,7 +1226,7 @@ type SendPayRequest struct {
 	Route         []RouteHop `json:"route"`
 	PaymentHash   string     `json:"payment_hash"`
 	Label         string     `json:"label,omitempty"`
-	MilliSatoshis *uint64    `json:"msatoshi,omitempty"`
+	MilliSatoshis uint64     `json:"amount_msat,omitempty"`
 	Bolt11        string     `json:"bolt11,omitempty"`
 	PaymentSecret string     `json:"payment_secret,omitempty"`
 	PartId        uint64     `json:"partid,omitempty"`
@@ -1153,9 +1241,9 @@ type SendPayFields struct {
 	PaymentHash           string  `json:"payment_hash"`
 	Destination           string  `json:"destination,omitempty"`
 	AmountMilliSatoshiRaw uint64  `json:"msatoshi,omitempty"`
-	AmountMilliSatoshi    string  `json:"amount_msat"`
+	AmountMilliSatoshi    Amount  `json:"amount_msat"`
 	MilliSatoshiSentRaw   uint64  `json:"msatoshi_sent,omitempty"`
-	MilliSatoshiSent      string  `json:"amount_sent_msat"`
+	MilliSatoshiSent      Amount  `json:"amount_sent_msat"`
 	CreatedAt             float64 `json:"created_at"`
 	Status                string  `json:"status"`
 	PaymentPreimage       string  `json:"payment_preimage,omitempty"`
@@ -1172,7 +1260,7 @@ type SendPayResult struct {
 
 // SendPay, but without description or millisatoshi value
 func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayResult, error) {
-	return l.SendPay(route, paymentHash, "", nil, "", "", 0)
+	return l.SendPay(route, paymentHash, "", 0, "", "", 0)
 }
 
 // Send along {route} in return for preimage of {paymentHash}
@@ -1203,7 +1291,7 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 // prevents accidental multiple payments. Calls with the same 'paymentHash',
 // 'msat' and destination as a previous successful payment will return
 // immediately with a success, even if the route is different.
-func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat *uint64, bolt11 string, paymentSecret string, partId uint64) (*SendPayResult, error) {
+func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat uint64, bolt11 string, paymentSecret string, partId uint64) (*SendPayResult, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must specify a paymentHash to pay")
 	}
@@ -1379,7 +1467,7 @@ type PaymentFields struct {
 	Bolt11                 string `json:"bolt11"`
 	Status                 string `json:"status"`
 	PaymentPreImage        string `json:"payment_preimage"`
-	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
+	AmountSentMilliSatoshi Amount `json:"amount_sent_msat"`
 	Label                  string `json:"label,omitempty"`
 }
 
@@ -1522,7 +1610,7 @@ type FundChannelRequest struct {
 	FeeRate  string  `json:"feerate,omitempty"`
 	Announce bool    `json:"announce"`
 	MinConf  *uint16 `json:"minconf,omitempty"`
-	PushMsat string  `json:"push_msat,omitempty"`
+	PushMsat Amount  `json:"push_msat,omitempty"`
 }
 
 func (r FundChannelRequest) Name() string {
@@ -1571,7 +1659,7 @@ func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, ann
 		req.FeeRate = feerate.String()
 	}
 	if pushMSat != nil {
-		req.PushMsat = pushMSat.String()
+		req.PushMsat = AmountFromMSat(pushMSat.Value)
 	}
 	req.MinConf = minConf
 
@@ -2115,7 +2203,7 @@ type FundOutput struct {
 	TxId               string `json:"txid"`
 	Output             int    `json:"output"`
 	Value              uint64 `json:"value"`
-	AmountMilliSatoshi uint64 `json:"amount_msat"`
+	AmountMilliSatoshi Amount `json:"amount_msat"`
 	Address            string `json:"address"`
 	Status             string `json:"status"`
 	Blockheight        int    `json:"blockheight,omitempty"`
@@ -2124,8 +2212,8 @@ type FundOutput struct {
 type FundingChannel struct {
 	Id                    string `json:"peer_id"`
 	ShortChannelId        string `json:"short_channel_id"`
-	OurAmountMilliSatoshi uint64 `json:"our_amount_msat"`
-	AmountMilliSatoshi    uint64 `json:"amount_msat"`
+	OurAmountMilliSatoshi Amount `json:"our_amount_msat"`
+	AmountMilliSatoshi    Amount `json:"amount_msat"`
 	ChannelSatoshi        uint64 `json:"channel_sat"`
 	ChannelTotalSatoshi   uint64 `json:"channel_total_sat"`
 	FundingTxId           string `json:"funding_txid"`
@@ -2151,11 +2239,11 @@ type Forwarding struct {
 	InChannel       string  `json:"in_channel"`
 	OutChannel      string  `json:"out_channel"`
 	MilliSatoshiIn  uint64  `json:"in_msatoshi,omitempty"`
-	InMsat          uint64  `json:"in_msat"`
+	InMsat          Amount  `json:"in_msat"`
 	MilliSatoshiOut uint64  `json:"out_msatoshi,omitempty"`
-	OutMsat         uint64  `json:"out_msat"`
+	OutMsat         Amount  `json:"out_msat"`
 	Fee             uint64  `json:"fee"`
-	FeeMsat         uint64  `json:"fee_msat"`
+	FeeMsat         Amount  `json:"fee_msat"`
 	Status          string  `json:"status"`
 	PaymentHash     string  `json:"payment_hash"`
 	FailCode        int     `json:"failcode"`

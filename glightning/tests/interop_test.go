@@ -469,7 +469,7 @@ func TestCreateOnion(t *testing.T) {
 	firstHop := glightning.FirstHop{
 		ShortChannelId: "100x1x1",
 		Direction:      1,
-		AmountMsat:     "1000sat",
+		AmountMsat:     glightning.AmountFromSat(1000),
 		Delay:          8,
 	}
 
