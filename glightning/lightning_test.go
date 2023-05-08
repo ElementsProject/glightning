@@ -466,14 +466,14 @@ func TestPay(t *testing.T) {
           "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
           "channel": "233x1x0",
           "msatoshi": 300660,
-	  "amount_msat": "300660msat",
+	  "amount_msat": "300660",
           "delay": 16
         },
         {
           "id": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
           "channel": "263x1x0",
           "msatoshi": 300656,
-	  "amount_msat": "300656msat",
+	  "amount_msat": "300656",
           "delay": 10
         }
       ]
@@ -505,14 +505,12 @@ func TestPay(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   301080,
 			AmountMsat:     glightning.AmountFromMSat(301080),
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
-			MilliSatoshi:   301076,
 			AmountMsat:     glightning.AmountFromMSat(301076),
 			Delay:          10,
 		},
@@ -521,14 +519,12 @@ func TestPay(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   300660,
 			AmountMsat:     glightning.AmountFromMSat(300660),
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
-			MilliSatoshi:   300656,
 			AmountMsat:     glightning.AmountFromMSat(300656),
 			Delay:          10,
 		},
@@ -626,7 +622,7 @@ func TestWaitSendPayError(t *testing.T) {
 }
 
 func TestSendPay(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"partid":1,"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","payment_secret":"hello","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"partid":1,"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","payment_secret":"hello","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","amount_msat":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","amount_msat":10000,"delay":9}]},"id":1}`
 	resp := wrapResult(1, `{
   "message": "Monitor status with listsendpays or waitsendpay",
   "id": 1,
@@ -649,20 +645,20 @@ func TestSendPay(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   uint64(10001),
+			AmountMsat:     glightning.AmountFromMSat(10001),
 			Delay:          15,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
-			MilliSatoshi:   uint64(10000),
+			AmountMsat:     glightning.AmountFromMSat(10000),
 			Delay:          9,
 		},
 	}
 
 	paymentHash := "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993"
 	partid := uint64(1)
-	invoice, err := lightning.SendPay(route, paymentHash, "", nil, "", "hello", partid)
+	invoice, err := lightning.SendPay(route, paymentHash, "", 0, "", "hello", partid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -876,7 +872,7 @@ func TestGetInvoice(t *testing.T) {
 }
 
 func TestInvoice(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":true,"label":"uniq","msatoshi":"1"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"amount_msat":1,"description":"desc","expiry":200,"exposeprivatechannels":true,"label":"uniq"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
   "expires_at": 1546475890,
@@ -899,7 +895,7 @@ func TestInvoice(t *testing.T) {
 }
 
 func TestInvoiceWithChannelExposure(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":["111x1x0","123x0x0"],"label":"uniq","msatoshi":"1"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"amount_msat":1,"description":"desc","expiry":200,"exposeprivatechannels":["111x1x0","123x0x0"],"label":"uniq"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
   "expires_at": 1546475890,
@@ -923,7 +919,7 @@ func TestInvoiceWithChannelExposure(t *testing.T) {
 }
 
 func TestInvoiceAny(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":false,"label":"label","msatoshi":"any"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"amount_msat":"any","description":"desc","expiry":200,"exposeprivatechannels":false,"label":"label"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
   "expires_at": 1546475555,
@@ -946,13 +942,13 @@ func TestInvoiceAny(t *testing.T) {
 
 func TestGetRouteSimple(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
-	req := `{"jsonrpc":"2.0","method":"getroute","params":{"cltv":9,"fuzzpercent":5,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","msatoshi":300000,"riskfactor":99},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"getroute","params":{"amount_msat":300000,"cltv":9,"fuzzpercent":5,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","riskfactor":99},"id":1}`
 	resp := wrapResult(1, `{
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
       "channel": "233x1x0",
-      "msatoshi": 300000,
+      "amount_msat": 300000,
       "delay": 9
     }
   ]
@@ -968,7 +964,7 @@ func TestGetRouteSimple(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   300000,
+			AmountMsat:     glightning.AmountFromMSat(300000),
 			Delay:          9,
 		},
 	}, route)
@@ -978,13 +974,13 @@ func TestGetRoute(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
 	fromId := "02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da"
 
-	req := `{"jsonrpc":"2.0","method":"getroute","params":{"cltv":32,"exclude":["1020x222x1/1"],"fromid":"02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da","fuzzpercent":10,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","maxhops":10,"msatoshi":300000,"riskfactor":99},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"getroute","params":{"amount_msat":300000,"cltv":32,"exclude":["1020x222x1/1"],"fromid":"02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da","fuzzpercent":10,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","maxhops":10,"riskfactor":99},"id":1}`
 	resp := wrapResult(1, `{
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
       "channel": "233x1x0",
-      "msatoshi": 300000,
+      "amount_msat": 300000,
       "delay": 32 
     }
   ]
@@ -1000,7 +996,7 @@ func TestGetRoute(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   300000,
+			AmountMsat:     glightning.AmountFromMSat(300000),
 			Delay:          32,
 		},
 	}, route)
@@ -1397,7 +1393,7 @@ func TestFundChannel(t *testing.T) {
 	sats = glightning.AllSats()
 	msat := glightning.NewMsat(10000)
 	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
-	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s","push_msat":"10000msat"},"id":%d}`, id, 5)
+	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s","push_msat":10000},"id":%d}`, id, 5)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil, msat)
 	if err != nil {
@@ -2196,8 +2192,7 @@ func TestPayStatus(t *testing.T) {
 	request := "{\"jsonrpc\":\"2.0\",\"method\":\"paystatus\",\"params\":{},\"id\":1}"
 	reply := wrapResult(1, `{"pay": [{
          "bolt11": "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
-         "msatoshi": 10000,
-         "amount_msat": "10000msat",
+         "amount_msat": 10000,
          "destination": "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
          "attempts": [
             {
@@ -2261,10 +2256,9 @@ func TestPayStatus(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(statuses))
 	assert.Equal(t, glightning.PayStatus{
-		Bolt11:       "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
-		MilliSatoshi: 10000,
-		AmountMsat:   glightning.AmountFromMSat(10000),
-		Destination:  "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
+		Bolt11:      "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
+		AmountMsat:  glightning.AmountFromMSat(10000),
+		Destination: "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
 		Attempts: []glightning.PayAttempt{
 			glightning.PayAttempt{
 				Strategy:          "Initial attempt",
@@ -2276,14 +2270,12 @@ func TestPayStatus(t *testing.T) {
 					glightning.RouteHop{
 						Id:             "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
 						ShortChannelId: "1442x1x0",
-						MilliSatoshi:   10001,
-						Direction:      0,
 						AmountMsat:     glightning.AmountFromMSat(10001),
+						Direction:      0,
 						Delay:          16,
 					}, glightning.RouteHop{
 						Id:             "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
 						ShortChannelId: "1442x2x0",
-						MilliSatoshi:   10000,
 						AmountMsat:     glightning.AmountFromMSat(10000),
 						Direction:      1,
 						Delay:          10,
