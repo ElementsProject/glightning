@@ -2091,6 +2091,43 @@ func stringifyOutputs(outputs []*Outputs) []json.RawMessage {
 	return results
 }
 
+type SetPSBTVersionRequest struct {
+	Psbt    string `json:"psbt"`
+	Version int    `json:"version"`
+}
+
+func (r SetPSBTVersionRequest) Name() string {
+	return "setpsbtversion"
+}
+
+type SetPSBTVersionResponse struct {
+	Psbt string `"json:"psbt"`
+}
+
+func (l *Lightning) SetPSBTVersion(psbt string, version int) (*SetPSBTVersionResponse, error) {
+	var result SetPSBTVersionResponse
+	err := l.client.Request(&SetPSBTVersionRequest{Psbt: psbt, Version: version}, &result)
+	return &result, err
+}
+
+type SignPSBTRequest struct {
+	Psbt string `json:"psbt"`
+}
+
+func (r SignPSBTRequest) Name() string {
+	return "signpsbt"
+}
+
+type SignPSBTResponse struct {
+	SignedPSBT string `json:"signed_psbt"`
+}
+
+func (l *Lightning) SignPSBT(psbt string) (*SignPSBTResponse, error) {
+	var result SignPSBTResponse
+	err := l.client.Request(&SignPSBTRequest{Psbt: psbt}, &result)
+	return &result, err
+}
+
 type Utxo struct {
 	TxId  string
 	Index uint
@@ -2119,7 +2156,7 @@ type TxPrepare struct {
 
 type TxResult struct {
 	UnsignedTx string `json:"unsigned_tx"`
-	SignedTx   string `json:"tx"`
+	SignedTx   string `json:"tx,omitempty"`
 	TxId       string `json:"txid"`
 	Psbt       string `json:"psbt"`
 }
