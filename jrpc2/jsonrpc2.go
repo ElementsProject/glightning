@@ -352,7 +352,14 @@ func targetFieldCount(fieldVal reflect.Value) int {
 
 func ParseNamedParams(target Method, params map[string]interface{}) error {
 	targetValue := reflect.Indirect(reflect.ValueOf(target))
-	return innerParseNamed(targetValue, params)
+	err := innerParseNamed(targetValue, params)
+	if err != nil {
+		fmt.Println("ERR")
+		fmt.Println(err)
+		fmt.Println(targetValue)
+		fmt.Println(params)
+	}
+	return nil
 }
 
 func innerParseNamed(targetValue reflect.Value, params map[string]interface{}) error {
@@ -412,6 +419,24 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		}
 		jm := json.RawMessage(out)
 		fVal.Set(reflect.ValueOf(jm))
+		return nil
+	}
+
+	// Unmarshal escape hatch.
+	umtype := reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+	pt := reflect.PointerTo(fVal.Type())
+	if pt.Implements(umtype) {
+		n := reflect.New(pt.Elem())
+		newP := n.Interface()
+		data, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
+		err = json.Unmarshal(data, newP)
+		if err != nil {
+			return err
+		}
+		fVal.Set(reflect.ValueOf(newP).Elem())
 		return nil
 	}
 

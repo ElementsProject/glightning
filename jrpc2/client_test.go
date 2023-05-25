@@ -2,6 +2,7 @@ package jrpc2_test
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"os"
@@ -111,7 +112,7 @@ func (s *ServerSubtractString) New() interface{} {
 }
 
 func (s *ServerSubtractString) Call() (jrpc2.Result, error) {
-	return string(s.Minuend - s.Subtrahend), nil
+	return fmt.Sprintf("%d", (s.Minuend - s.Subtrahend)), nil
 }
 
 // send a response with a result of a different type than

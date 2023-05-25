@@ -191,15 +191,15 @@ func TestListPeers(t *testing.T) {
 	fundingAlloc["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = uint64(0)
 	fundingAlloc["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = uint64(1000000000)
 
-	fundingAllocMsat := make(map[string]string)
-	fundingAllocMsat["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = "0msat"
-	fundingAllocMsat["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = "1000000000msat"
+	fundingAllocMsat := make(map[string]glightning.Amount)
+	fundingAllocMsat["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = glightning.AmountFromMSat(0)
+	fundingAllocMsat["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = glightning.AmountFromMSat(1000000000)
 	htlcs := []*glightning.Htlc{
 		&glightning.Htlc{
 			Direction:    "out",
 			Id:           1,
 			MilliSatoshi: 1437433749,
-			AmountMsat:   "1437433749msat",
+			AmountMsat:   glightning.AmountFromMSat(1437433749),
 			Expiry:       556832,
 			PaymentHash:  "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
 			State:        "SENT_REMOVE_ACK_COMMIT",
@@ -226,25 +226,25 @@ func TestListPeers(t *testing.T) {
 					FundingAllocations:               fundingAlloc,
 					FundingMsat:                      fundingAllocMsat,
 					MilliSatoshiToUs:                 16777215000,
-					ToUsMsat:                         "16777215000msat",
+					ToUsMsat:                         glightning.AmountFromMSat(16777215000),
 					MilliSatoshiToUsMin:              16777215000,
-					MinToUsMsat:                      "16777215000msat",
+					MinToUsMsat:                      glightning.AmountFromMSat(16777215000),
 					MilliSatoshiToUsMax:              16777215000,
-					MaxToUsMsat:                      "16777215000msat",
+					MaxToUsMsat:                      glightning.AmountFromMSat(16777215000),
 					MilliSatoshiTotal:                16777215000,
-					TotalMsat:                        "16777215000msat",
+					TotalMsat:                        glightning.AmountFromMSat(16777215000),
 					DustLimitSatoshi:                 546,
-					DustLimitMsat:                    "546000msat",
+					DustLimitMsat:                    glightning.AmountFromMSat(546000),
 					MaxHtlcValueInFlightMilliSatoshi: 18446744073709551615,
-					MaxHtlcValueInFlightMsat:         "18446744073709551615msat",
+					MaxHtlcValueInFlightMsat:         glightning.AmountFromMSat(18446744073709551615),
 					TheirChannelReserveSatoshi:       167773,
-					TheirReserveMsat:                 "167773000msat",
+					TheirReserveMsat:                 glightning.AmountFromMSat(167773000),
 					OurChannelReserveSatoshi:         167773,
-					OurReserveMsat:                   "167773000msat",
+					OurReserveMsat:                   glightning.AmountFromMSat(167773000),
 					SpendableMilliSatoshi:            16609442000,
-					SpendableMsat:                    "16609442000msat",
+					SpendableMsat:                    glightning.AmountFromMSat(16609442000),
 					HtlcMinMilliSatoshi:              10,
-					MinimumHtlcInMsat:                "10msat",
+					MinimumHtlcInMsat:                glightning.AmountFromMSat(10),
 					TheirToSelfDelay:                 6,
 					OurToSelfDelay:                   6,
 					MaxAcceptedHtlcs:                 483,
@@ -253,16 +253,16 @@ func TestListPeers(t *testing.T) {
 					},
 					InPaymentsOffered:        110,
 					InMilliSatoshiOffered:    123,
-					IncomingOfferedMsat:      "123msat",
+					IncomingOfferedMsat:      glightning.AmountFromMSat(123),
 					InPaymentsFulfilled:      123,
 					InMilliSatoshiFulfilled:  123,
-					IncomingFulfilledMsat:    "123msat",
+					IncomingFulfilledMsat:    glightning.AmountFromMSat(123),
 					OutPaymentsOffered:       123,
 					OutMilliSatoshiOffered:   123,
-					OutgoingOfferedMsat:      "123msat",
+					OutgoingOfferedMsat:      glightning.AmountFromMSat(123),
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
-					OutgoingFulfilledMsat:    "123msat",
+					OutgoingFulfilledMsat:    glightning.AmountFromMSat(123),
 					Htlcs:                    htlcs,
 				},
 			},
@@ -280,11 +280,11 @@ func TestListForwards(t *testing.T) {
          "in_channel": "1231x2x0",
          "out_channel": "1231x1x0",
          "in_msatoshi": 10002,
-         "in_msat": "10002msat",
+         "in_msat": 10002,
          "out_msatoshi": 100000,
-         "out_msat": "10000msat",
+         "out_msat": 10000,
          "fee": 2,
-         "fee_msat": "2msat",
+         "fee_msat": 2,
          "status": "settled",
          "received_time": 1565810857.345,
          "resolved_time": 1565810858.454
@@ -294,11 +294,11 @@ func TestListForwards(t *testing.T) {
 	  "in_channel": "103x2x1",
 	  "out_channel": "110x1x0",
 	  "in_msatoshi": 100001001,
-	  "in_msat": "100001001msat",
+	  "in_msat": 100001001,
 	  "out_msatoshi": 100000000,
-	  "out_msat": "100000000msat",
+	  "out_msat": 100000000,
 	  "fee": 1001,
-	  "fee_msat": "1001msat",
+	  "fee_msat": 1001,
 	  "status": "local_failed",
 	  "failcode": 16392,
 	  "failreason": "WIRE_PERMANENT_CHANNEL_FAILURE",
@@ -317,11 +317,11 @@ func TestListForwards(t *testing.T) {
 			InChannel:       "1231x2x0",
 			OutChannel:      "1231x1x0",
 			MilliSatoshiIn:  10002,
-			InMsat:          "10002msat",
+			InMsat:          glightning.AmountFromMSat(10002),
 			MilliSatoshiOut: 100000,
-			OutMsat:         "10000msat",
+			OutMsat:         glightning.AmountFromMSat(10000),
 			Fee:             2,
-			FeeMsat:         "2msat",
+			FeeMsat:         glightning.AmountFromMSat(2),
 			Status:          "settled",
 			ReceivedTime:    1565810857.345,
 			ResolvedTime:    1565810858.454,
@@ -331,11 +331,11 @@ func TestListForwards(t *testing.T) {
 			InChannel:       "103x2x1",
 			OutChannel:      "110x1x0",
 			MilliSatoshiIn:  100001001,
-			InMsat:          "100001001msat",
+			InMsat:          glightning.AmountFromMSat(100001001),
 			MilliSatoshiOut: 100000000,
-			OutMsat:         "100000000msat",
+			OutMsat:         glightning.AmountFromMSat(100000000),
 			Fee:             1001,
-			FeeMsat:         "1001msat",
+			FeeMsat:         glightning.AmountFromMSat(1001),
 			Status:          "local_failed",
 			PaymentHash:     "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
 			FailCode:        16392,
@@ -372,7 +372,7 @@ func TestListPays(t *testing.T) {
 			PaymentPreImage:        "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
 			Status:                 "complete",
 			Label:                  "optional",
-			AmountSentMilliSatoshi: "10000msat",
+			AmountSentMilliSatoshi: glightning.AmountFromMSat(10000),
 		},
 	}, forwards)
 }
@@ -407,9 +407,9 @@ func TestListSendPays(t *testing.T) {
 			PaymentHash:           "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 			Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			AmountMilliSatoshiRaw: 10000,
-			AmountMilliSatoshi:    "10000msat",
+			AmountMilliSatoshi:    glightning.AmountFromMSat(10000),
 			MilliSatoshiSentRaw:   10001,
-			MilliSatoshiSent:      "10001msat",
+			MilliSatoshiSent:      glightning.AmountFromMSat(10001),
 			CreatedAt:             1546480001,
 			Status:                "complete",
 			PaymentPreimage:       "1ca5dd46bb09fdb03cbb888800f8d18954da991c5368a37cd3d62968ae5bf089",
@@ -466,14 +466,14 @@ func TestPay(t *testing.T) {
           "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
           "channel": "233x1x0",
           "msatoshi": 300660,
-	  "amount_msat": "300660msat",
+	  "amount_msat": "300660",
           "delay": 16
         },
         {
           "id": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
           "channel": "263x1x0",
           "msatoshi": 300656,
-	  "amount_msat": "300656msat",
+	  "amount_msat": "300656",
           "delay": 10
         }
       ]
@@ -493,9 +493,9 @@ func TestPay(t *testing.T) {
 		PaymentHash:           "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
 		Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 		AmountMilliSatoshiRaw: 300000,
-		AmountMilliSatoshi:    "300000msat",
+		AmountMilliSatoshi:    glightning.AmountFromMSat(300000),
 		MilliSatoshiSentRaw:   301080,
-		MilliSatoshiSent:      "301080msat",
+		MilliSatoshiSent:      glightning.AmountFromMSat(301080),
 		CreatedAt:             1546484611,
 		Status:                "complete",
 		PaymentPreimage:       "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
@@ -505,15 +505,13 @@ func TestPay(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   301080,
-			AmountMsat:     "301080msat",
+			AmountMsat:     glightning.AmountFromMSat(301080),
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
-			MilliSatoshi:   301076,
-			AmountMsat:     "301076msat",
+			AmountMsat:     glightning.AmountFromMSat(301076),
 			Delay:          10,
 		},
 	}
@@ -521,15 +519,13 @@ func TestPay(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   300660,
-			AmountMsat:     "300660msat",
+			AmountMsat:     glightning.AmountFromMSat(300660),
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
-			MilliSatoshi:   300656,
-			AmountMsat:     "300656msat",
+			AmountMsat:     glightning.AmountFromMSat(300656),
 			Delay:          10,
 		},
 	}
@@ -578,9 +574,9 @@ func TestWaitSendPay(t *testing.T) {
 		PaymentHash:           paymentHash,
 		Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 		AmountMilliSatoshiRaw: 10000,
-		AmountMilliSatoshi:    "10000msat",
+		AmountMilliSatoshi:    glightning.AmountFromMSat(10000),
 		MilliSatoshiSentRaw:   10001,
-		MilliSatoshiSent:      "10001msat",
+		MilliSatoshiSent:      glightning.AmountFromMSat(10001),
 		CreatedAt:             1546483736,
 		Status:                "complete",
 		PaymentPreimage:       "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d",
@@ -626,7 +622,7 @@ func TestWaitSendPayError(t *testing.T) {
 }
 
 func TestSendPay(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"partid":1,"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","payment_secret":"hello","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"partid":1,"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","payment_secret":"hello","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","amount_msat":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","amount_msat":10000,"delay":9}]},"id":1}`
 	resp := wrapResult(1, `{
   "message": "Monitor status with listsendpays or waitsendpay",
   "id": 1,
@@ -649,20 +645,20 @@ func TestSendPay(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   uint64(10001),
+			AmountMsat:     glightning.AmountFromMSat(10001),
 			Delay:          15,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
-			MilliSatoshi:   uint64(10000),
+			AmountMsat:     glightning.AmountFromMSat(10000),
 			Delay:          9,
 		},
 	}
 
 	paymentHash := "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993"
 	partid := uint64(1)
-	invoice, err := lightning.SendPay(route, paymentHash, "", nil, "", "hello", partid)
+	invoice, err := lightning.SendPay(route, paymentHash, "", 0, "", "hello", partid)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -671,9 +667,9 @@ func TestSendPay(t *testing.T) {
 		PaymentHash:           "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 		Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 		AmountMilliSatoshiRaw: 10000,
-		AmountMilliSatoshi:    "10000msat",
+		AmountMilliSatoshi:    glightning.AmountFromMSat(10000),
 		MilliSatoshiSentRaw:   10001,
-		MilliSatoshiSent:      "10001msat",
+		MilliSatoshiSent:      glightning.AmountFromMSat(10001),
 		CreatedAt:             1546480001,
 		Status:                "pending",
 		Bolt11:                "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
@@ -717,9 +713,9 @@ func TestWaitAnyInvoice(t *testing.T) {
 		Description:             "desc",
 		ExpiresAt:               1546482931,
 		MilliSatoshiReceivedRaw: 10000,
-		MilliSatoshiReceived:    "10000msat",
+		MilliSatoshiReceived:    glightning.AmountFromMSat(10000),
 		AmountMilliSatoshiRaw:   10000,
-		AmountMilliSatoshi:      "10000msat",
+		AmountMilliSatoshi:      glightning.AmountFromMSat(10000),
 		PayIndex:                2,
 		PaidAt:                  1546482927,
 	}, invoice)
@@ -757,9 +753,9 @@ func TestWaitInvoice(t *testing.T) {
 		Description:             "desc",
 		ExpiresAt:               1546480005,
 		MilliSatoshiReceivedRaw: 10000,
-		MilliSatoshiReceived:    "10000msat",
+		MilliSatoshiReceived:    glightning.AmountFromMSat(10000),
 		AmountMilliSatoshiRaw:   10000,
-		AmountMilliSatoshi:      "10000msat",
+		AmountMilliSatoshi:      glightning.AmountFromMSat(10000),
 		PayIndex:                1,
 		PaidAt:                  1546480002,
 	}, invoice)
@@ -876,7 +872,7 @@ func TestGetInvoice(t *testing.T) {
 }
 
 func TestInvoice(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":true,"label":"uniq","msatoshi":"1"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"amount_msat":1,"description":"desc","expiry":200,"exposeprivatechannels":true,"label":"uniq"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
   "expires_at": 1546475890,
@@ -899,7 +895,7 @@ func TestInvoice(t *testing.T) {
 }
 
 func TestInvoiceWithChannelExposure(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":["111x1x0","123x0x0"],"label":"uniq","msatoshi":"1"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"amount_msat":1,"description":"desc","expiry":200,"exposeprivatechannels":["111x1x0","123x0x0"],"label":"uniq"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
   "expires_at": 1546475890,
@@ -923,7 +919,7 @@ func TestInvoiceWithChannelExposure(t *testing.T) {
 }
 
 func TestInvoiceAny(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":false,"label":"label","msatoshi":"any"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"amount_msat":"any","description":"desc","expiry":200,"exposeprivatechannels":false,"label":"label"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
   "expires_at": 1546475555,
@@ -946,13 +942,13 @@ func TestInvoiceAny(t *testing.T) {
 
 func TestGetRouteSimple(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
-	req := `{"jsonrpc":"2.0","method":"getroute","params":{"cltv":9,"fuzzpercent":5,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","msatoshi":300000,"riskfactor":99},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"getroute","params":{"amount_msat":300000,"cltv":9,"fuzzpercent":5,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","riskfactor":99},"id":1}`
 	resp := wrapResult(1, `{
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
       "channel": "233x1x0",
-      "msatoshi": 300000,
+      "amount_msat": 300000,
       "delay": 9
     }
   ]
@@ -968,7 +964,7 @@ func TestGetRouteSimple(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   300000,
+			AmountMsat:     glightning.AmountFromMSat(300000),
 			Delay:          9,
 		},
 	}, route)
@@ -978,13 +974,13 @@ func TestGetRoute(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
 	fromId := "02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da"
 
-	req := `{"jsonrpc":"2.0","method":"getroute","params":{"cltv":32,"exclude":["1020x222x1/1"],"fromid":"02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da","fuzzpercent":10,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","maxhops":10,"msatoshi":300000,"riskfactor":99},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"getroute","params":{"amount_msat":300000,"cltv":32,"exclude":["1020x222x1/1"],"fromid":"02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da","fuzzpercent":10,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","maxhops":10,"riskfactor":99},"id":1}`
 	resp := wrapResult(1, `{
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
       "channel": "233x1x0",
-      "msatoshi": 300000,
+      "amount_msat": 300000,
       "delay": 32 
     }
   ]
@@ -1000,7 +996,7 @@ func TestGetRoute(t *testing.T) {
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
-			MilliSatoshi:   300000,
+			AmountMsat:     glightning.AmountFromMSat(300000),
 			Delay:          32,
 		},
 	}, route)
@@ -1230,7 +1226,7 @@ func TestListFunds(t *testing.T) {
       "txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
       "output": 1,
       "value": 1250000000,
-      "amount_msat": "1250000000000msat",
+      "amount_msat": 1250000000000,
       "address": "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
       "status": "confirmed",
       "blockheight": 1085
@@ -1239,7 +1235,7 @@ func TestListFunds(t *testing.T) {
          "txid": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
          "output": 1,
          "value": 99799846,
-         "amount_msat": "99799846000msat",
+         "amount_msat": 99799846000,
          "address": "bcrt1qkzeapc8ch9fzy39hhfku4m945k3j32c6hgqkzl",
          "status": "unconfirmed"
       }
@@ -1250,9 +1246,9 @@ func TestListFunds(t *testing.T) {
          "connected": true,
          "state": "CHANNELD_AWAITING_LOCKIN",
          "channel_sat": 200000,
-         "our_amount_msat": "200000000msat",
+         "our_amount_msat": 200000000,
          "channel_total_sat": 200000,
-         "amount_msat": "200000000msat",
+         "amount_msat": 200000000,
          "funding_txid": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
          "funding_output": 0
       }
@@ -1270,7 +1266,7 @@ func TestListFunds(t *testing.T) {
 				TxId:               "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
 				Output:             1,
 				Value:              uint64(1250000000),
-				AmountMilliSatoshi: "1250000000000msat",
+				AmountMilliSatoshi: glightning.AmountFromMSat(1250000000000),
 				Address:            "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
 				Status:             "confirmed",
 				Blockheight:        1085,
@@ -1279,7 +1275,7 @@ func TestListFunds(t *testing.T) {
 				TxId:               "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 				Output:             1,
 				Value:              uint64(99799846),
-				AmountMilliSatoshi: "99799846000msat",
+				AmountMilliSatoshi: glightning.AmountFromMSat(99799846000),
 				Address:            "bcrt1qkzeapc8ch9fzy39hhfku4m945k3j32c6hgqkzl",
 				Status:             "unconfirmed",
 			},
@@ -1288,8 +1284,8 @@ func TestListFunds(t *testing.T) {
 			&glightning.FundingChannel{
 				Id:                    "020e31bda574c36fa78ba2664ccf47b3f632f157a7b3e139de9ed396455c0f14de",
 				ChannelSatoshi:        200000,
-				AmountMilliSatoshi:    "200000000msat",
-				OurAmountMilliSatoshi: "200000000msat",
+				AmountMilliSatoshi:    glightning.AmountFromMSat(200000000),
+				OurAmountMilliSatoshi: glightning.AmountFromMSat(200000000),
 				ChannelTotalSatoshi:   200000,
 				FundingTxId:           "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 				FundingOutput:         0,
@@ -1397,7 +1393,7 @@ func TestFundChannel(t *testing.T) {
 	sats = glightning.AllSats()
 	msat := glightning.NewMsat(10000)
 	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
-	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s","push_msat":"10000msat"},"id":%d}`, id, 5)
+	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s","push_msat":10000},"id":%d}`, id, 5)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil, msat)
 	if err != nil {
@@ -1589,9 +1585,9 @@ func TestListChannels(t *testing.T) {
 			BaseFeeMillisatoshi:      1000,
 			FeePerMillionth:          uint64(1),
 			Delay:                    uint(144),
-			AmountMsat:               "500000000msat",
-			HtlcMinimumMilliSatoshis: "0msat",
-			HtlcMaximumMilliSatoshis: "4294967295msat",
+			AmountMsat:               glightning.AmountFromMSat(500000000),
+			HtlcMinimumMilliSatoshis: glightning.AmountFromMSat(0),
+			HtlcMaximumMilliSatoshis: glightning.AmountFromMSat(4294967295),
 		},
 		&glightning.Channel{
 			Source:                   "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
@@ -1606,9 +1602,9 @@ func TestListChannels(t *testing.T) {
 			BaseFeeMillisatoshi:      1000,
 			FeePerMillionth:          uint64(1),
 			Delay:                    uint(144),
-			AmountMsat:               "500000000msat",
-			HtlcMinimumMilliSatoshis: "0msat",
-			HtlcMaximumMilliSatoshis: "4294967295msat",
+			AmountMsat:               glightning.AmountFromMSat(500000000),
+			HtlcMinimumMilliSatoshis: glightning.AmountFromMSat(0),
+			HtlcMaximumMilliSatoshis: glightning.AmountFromMSat(4294967295),
 		},
 	}, channels)
 }
@@ -1710,7 +1706,7 @@ func TestGetInfo(t *testing.T) {
 		Blockheight:                556302,
 		Network:                    "bitcoin",
 		FeesCollectedMilliSatoshis: 300,
-		FeesCollected:              "300msat",
+		FeesCollected:              glightning.AmountFromMSat(300),
 	}, info)
 }
 
@@ -1864,7 +1860,7 @@ func TestDecodePay(t *testing.T) {
 		Expiry:             uint64(60),
 		Payee:              "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
 		MilliSatoshis:      250000000,
-		AmountMsat:         "250000000msat",
+		AmountMsat:         glightning.AmountFromMSat(250000000),
 		Description:        "1 cup of coffee",
 		MinFinalCltvExpiry: 9,
 		PaymentHash:        "0001020304050607080900010203040506070809000102030405060708090102",
@@ -1927,7 +1923,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 		Expiry:             uint64(3600),
 		Payee:              "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
 		MilliSatoshis:      2000000000,
-		AmountMsat:         "2000000000msat",
+		AmountMsat:         glightning.AmountFromMSat(2000000000),
 		DescriptionHash:    "3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1",
 		MinFinalCltvExpiry: 9,
 		PaymentHash:        "0001020304050607080900010203040506070809000102030405060708090102",
@@ -2196,8 +2192,7 @@ func TestPayStatus(t *testing.T) {
 	request := "{\"jsonrpc\":\"2.0\",\"method\":\"paystatus\",\"params\":{},\"id\":1}"
 	reply := wrapResult(1, `{"pay": [{
          "bolt11": "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
-         "msatoshi": 10000,
-         "amount_msat": "10000msat",
+         "amount_msat": 10000,
          "destination": "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
          "attempts": [
             {
@@ -2261,10 +2256,9 @@ func TestPayStatus(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(statuses))
 	assert.Equal(t, glightning.PayStatus{
-		Bolt11:       "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
-		MilliSatoshi: 10000,
-		AmountMsat:   "10000msat",
-		Destination:  "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
+		Bolt11:      "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
+		AmountMsat:  glightning.AmountFromMSat(10000),
+		Destination: "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
 		Attempts: []glightning.PayAttempt{
 			glightning.PayAttempt{
 				Strategy:          "Initial attempt",
@@ -2276,15 +2270,13 @@ func TestPayStatus(t *testing.T) {
 					glightning.RouteHop{
 						Id:             "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
 						ShortChannelId: "1442x1x0",
-						MilliSatoshi:   10001,
+						AmountMsat:     glightning.AmountFromMSat(10001),
 						Direction:      0,
-						AmountMsat:     "10001msat",
 						Delay:          16,
 					}, glightning.RouteHop{
 						Id:             "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
 						ShortChannelId: "1442x2x0",
-						MilliSatoshi:   10000,
-						AmountMsat:     "10000msat",
+						AmountMsat:     glightning.AmountFromMSat(10000),
 						Direction:      1,
 						Delay:          10,
 					},
@@ -2418,10 +2410,10 @@ func TestGetSharedSecret(t *testing.T) {
 	assert.Equal(t, "b6bd6a8327b5437fb64f202bdc388490841b6cf96057f6b74a0c6a61408aa88d", ss)
 }
 
-func TestDevSendCustomMessage(t *testing.T) {
+func TestSendCustomMessage(t *testing.T) {
 	peer := "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96"
 	msg := "aaffff"
-	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"dev-sendcustommsg","params":{"msg":"%s","node_id":"%s"},"id":1}`, msg, peer)
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"sendcustommsg","params":{"msg":"%s","node_id":"%s"},"id":1}`, msg, peer)
 	resp := wrapResult(1, `{
    "status": "Message sent to subdaemon channeld for delivery"
 	}`)
