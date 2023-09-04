@@ -1,6 +1,7 @@
 package gbitcoin
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -37,9 +39,15 @@ type Bitcoin struct {
 	requestCounter int64
 	username       string
 	password       string
+
+	CookiePath          string
+	cookieLastCheckTime time.Time
+	cookieLastModTime   time.Time
+	cookieLastUser      string
+	cookieLastPass      string
 }
 
-func NewBitcoin(username, password string) *Bitcoin {
+func NewBitcoin(username, password, cookiePath string) *Bitcoin {
 	bt := &Bitcoin{}
 
 	tr := &http.Transport{
@@ -49,6 +57,7 @@ func NewBitcoin(username, password string) *Bitcoin {
 	bt.httpClient = &http.Client{Transport: tr}
 	bt.username = username
 	bt.password = password
+	bt.CookiePath = cookiePath
 	return bt
 }
 
@@ -62,6 +71,63 @@ func (b *Bitcoin) SetTimeout(secs uint) {
 		IdleConnTimeout: time.Duration(secs) * time.Second,
 	}
 	b.httpClient = &http.Client{Transport: tr}
+}
+
+func (b *Bitcoin) getAuth() (username, passphrase string, err error) {
+	// Try username+passphrase auth first.
+	if b.password != "" {
+		return b.username, b.password, nil
+	}
+
+	// If no username or passphrase is set, try cookie auth.
+	return b.retrieveCookie()
+}
+
+// retrieveCookie returns the cookie username and passphrase.
+func (b *Bitcoin) retrieveCookie() (username, passphrase string, err error) {
+	if !b.cookieLastCheckTime.IsZero() && time.Now().Before(b.cookieLastCheckTime.Add(30*time.Second)) {
+		return b.cookieLastUser, b.cookieLastPass, nil
+	}
+
+	b.cookieLastCheckTime = time.Now()
+
+	st, err := os.Stat(b.CookiePath)
+	if err != nil {
+		return b.cookieLastUser, b.cookieLastPass, err
+	}
+
+	modTime := st.ModTime()
+	if !modTime.Equal(b.cookieLastModTime) {
+		b.cookieLastModTime = modTime
+		return ReadCookieFile(b.CookiePath)
+	}
+
+	return b.cookieLastUser, b.cookieLastPass, nil
+}
+
+func ReadCookieFile(path string) (username, password string, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	scanner.Scan()
+	err = scanner.Err()
+	if err != nil {
+		return
+	}
+	s := scanner.Text()
+
+	parts := strings.SplitN(s, ":", 2)
+	if len(parts) != 2 {
+		err = fmt.Errorf("malformed cookie file")
+		return
+	}
+
+	username, password = parts[0], parts[1]
+	return
 }
 
 func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) error {
@@ -104,7 +170,10 @@ func (b *Bitcoin) Request(m jrpc2.Method, resp interface{}) error {
 func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 
 	id := b.NextId()
-	mr := &jrpc2.Request{id, m}
+	mr := &jrpc2.Request{
+		Id:     id,
+		Method: m,
+	}
 	jbytes, err := json.Marshal(mr)
 	if err != nil {
 		return err
@@ -120,7 +189,13 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 
 	req.Header.Set("Host", b.host)
 	req.Header.Set("Connection", "close")
-	req.SetBasicAuth(b.username, b.password)
+	// The RPC server requires basic authorization, so create a custom
+	// request header with the Authorization header set.
+	user, pass, err := b.getAuth()
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(user, pass)
 	req.Header.Set("Content-Type", "application/json")
 
 	rezp, err := b.httpClient.Do(req)

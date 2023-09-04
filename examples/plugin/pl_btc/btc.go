@@ -31,6 +31,7 @@ func main() {
 	plugin.RegisterNewIntOption("bitcoin-rpcport", "RPC port number for bitcoind", 8332)
 	plugin.RegisterNewOption("bitcoin-rpcuser", "Username for RPC auth", "btcuser")
 	plugin.RegisterNewOption("bitcoin-rpcpassword", "Authentication for RPC", "btcpass")
+	plugin.RegisterNewOption("bitcoin-cookie-path", "Authentication cookie path for RPC", "btccookiepath")
 
 	err := plugin.Start(os.Stdin, os.Stdout)
 	if err != nil {
@@ -46,9 +47,10 @@ func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, con
 	btcUser, _ := plugin.GetOption("bitcoin-rpcuser")
 	btcPass, _ := plugin.GetOption("bitcoin-rpcpassword")
 	btcPort, _ := plugin.GetIntOption("bitcoin-rpcport")
+	btcCookiePath, _ := plugin.GetOption("bitcoin-cookie-path")
 
 	// default startup
-	btc = gbitcoin.NewBitcoin(btcUser, btcPass)
+	btc = gbitcoin.NewBitcoin(btcUser, btcPass, btcCookiePath)
 	btc.StartUp("", btcDir, uint(btcPort))
 }
 
