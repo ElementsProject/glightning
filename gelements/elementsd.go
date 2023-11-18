@@ -101,7 +101,7 @@ func (e *Elements) StartUp(host string, port uint) error {
 // Blocking!
 func (b *Elements) request(m jrpc2.Method, resp interface{}) error {
 	id := b.NextId()
-	mr := &jrpc2.Request{id, m}
+	mr := &jrpc2.Request{Id: id, Method: m}
 	jbytes, err := json.Marshal(mr)
 	if err != nil {
 		return err
@@ -354,10 +354,11 @@ const (
 	Bech32 AddrType = iota
 	P2shSegwit
 	Legacy
+	Blech32
 )
 
 func (a AddrType) String() string {
-	return []string{"bech32", "p2sh-segwit", "legacy"}[a]
+	return []string{"bech32", "p2sh-segwit", "legacy", "blech32"}[a]
 }
 
 func (r *GetNewAddressRequest) Name() string {
