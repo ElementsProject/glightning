@@ -654,6 +654,23 @@ func (r *DecodeRawTransactionReq) Name() string {
 	return "decoderawtransaction"
 }
 
+type SetLabelReq struct {
+	Address string `json:"address"`
+	Label   string `json:"label"`
+}
+
+func (r *SetLabelReq) Name() string {
+	return "setlabel"
+}
+
+func (b *Bitcoin) SetLabel(address, label string) error {
+	var result string
+	return b.request(&SetLabelReq{
+		Address: address,
+		Label:   label,
+	}, &result)
+}
+
 type Tx struct {
 	TxId        string      `json:"txid"`
 	Hash        string      `json:"hash"`

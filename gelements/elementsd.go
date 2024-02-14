@@ -765,7 +765,7 @@ type GetBalanceRes struct {
 	BitcoinAmt float64 `json:"bitcoin"`
 }
 
-//GetBalance returns balance in sats
+// GetBalance returns balance in sats
 func (b *Elements) GetBalance() (uint64, error) {
 	var balance GetBalanceRes
 	err := b.request(&GetBalanceRequest{}, &balance)
@@ -897,6 +897,23 @@ func (e *Elements) RawBlindRawTransaction(hex string, inputAmountBlinders []stri
 		IgnoreBlindFail:     true,
 	}, &res)
 	return res, err
+}
+
+type SetLabelReq struct {
+	Address string `json:"address"`
+	Label   string `json:"label"`
+}
+
+func (r *SetLabelReq) Name() string {
+	return "setlabel"
+}
+
+func (e *Elements) SetLabel(address, label string) error {
+	var res string
+	return e.request(&SetLabelReq{
+		Address: address,
+		Label:   label,
+	}, &res)
 }
 
 type PsbtInput struct {
