@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/elementsproject/glightning/gbitcoin"
 	"github.com/elementsproject/glightning/jrpc2"
 )
 
@@ -37,9 +38,15 @@ type Elements struct {
 	username       string
 	password       string
 	rpcWallet      string
+
+	CookiePath          string
+	cookieLastCheckTime time.Time
+	cookieLastModTime   time.Time
+	cookieLastUser      string
+	cookieLastPass      string
 }
 
-func NewElements(username, password string) *Elements {
+func NewElements(username, password, cookiePath string) *Elements {
 	bt := &Elements{}
 
 	tr := &http.Transport{
@@ -50,6 +57,9 @@ func NewElements(username, password string) *Elements {
 	bt.username = username
 	bt.password = password
 	bt.rpcWallet = ""
+	bt.username = username
+	bt.password = password
+	bt.CookiePath = cookiePath
 	return bt
 }
 func (b *Elements) Endpoint() string {
@@ -67,6 +77,38 @@ func (b *Elements) SetTimeout(secs uint) {
 		IdleConnTimeout: time.Duration(secs) * time.Second,
 	}
 	b.httpClient = &http.Client{Transport: tr}
+}
+
+func (e *Elements) getAuth() (username, passphrase string, err error) {
+	// Try username+passphrase auth first.
+	if e.password != "" {
+		return e.username, e.password, nil
+	}
+
+	// If no username or passphrase is set, try cookie auth.
+	return e.retrieveCookie()
+}
+
+// retrieveCookie returns the cookie username and passphrase.
+func (e *Elements) retrieveCookie() (username, passphrase string, err error) {
+	if !e.cookieLastCheckTime.IsZero() && time.Now().Before(e.cookieLastCheckTime.Add(30*time.Second)) {
+		return e.cookieLastUser, e.cookieLastPass, nil
+	}
+
+	e.cookieLastCheckTime = time.Now()
+
+	st, err := os.Stat(e.CookiePath)
+	if err != nil {
+		return e.cookieLastUser, e.cookieLastPass, err
+	}
+
+	modTime := st.ModTime()
+	if !modTime.Equal(e.cookieLastModTime) {
+		e.cookieLastModTime = modTime
+		return gbitcoin.ReadCookieFile(e.CookiePath)
+	}
+
+	return e.cookieLastUser, e.cookieLastPass, nil
 }
 
 func (e *Elements) StartUp(host string, port uint) error {

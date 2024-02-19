@@ -122,6 +122,7 @@ func SpinUpBitcoind(t *testing.T, dir string) (string, int, int, *gbitcoin.Bitco
 	check(t, err)
 	btcUser := "btcuser"
 	btcPass := "btcpass"
+	btcCookiePath := "btcCookiePath"
 	bitcoind := exec.Command(bitcoinPath, "-regtest",
 		fmt.Sprintf("-datadir=%s", bitcoindDir),
 		"-server", "-logtimestamps", "-nolisten",
@@ -138,7 +139,7 @@ func SpinUpBitcoind(t *testing.T, dir string) (string, int, int, *gbitcoin.Bitco
 	check(t, err)
 	log.Printf(" bitcoind started (%d)!\n", bitcoind.Process.Pid)
 
-	btc := gbitcoin.NewBitcoin(btcUser, btcPass)
+	btc := gbitcoin.NewBitcoin(btcUser, btcPass, btcCookiePath)
 	btc.SetTimeout(uint(2))
 	// Waits til bitcoind is up
 	btc.StartUp("", bitcoindDir, uint(btcPort))
