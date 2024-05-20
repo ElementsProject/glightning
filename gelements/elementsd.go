@@ -971,6 +971,24 @@ type PsbtOutput struct {
 
 type WalletCreatFundedPsbtRes struct {
 }
+type GetNetworkInfoReq struct {
+}
+
+func (r *GetNetworkInfoReq) Name() string {
+	return "getnetworkinfo"
+}
+
+type NetworkInfo struct {
+	Version         int    `json:"version"`
+	Subversion      string `json:"subversion"`
+	ProtocolVersion int    `json:"protocolversion"`
+}
+
+func (b *Elements) GetNetworkInfo() (*NetworkInfo, error) {
+	var res NetworkInfo
+	err := b.request(&GetNetworkInfoReq{}, &res)
+	return &res, err
+}
 
 // for now, use a counter as the id for requests
 func (b *Elements) NextId() *jrpc2.Id {
