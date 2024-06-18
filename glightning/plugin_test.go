@@ -534,6 +534,24 @@ func TestHook_MessageFail(t *testing.T) {
 	runTest(t, plugin, msg+"\n\n", resp)
 }
 
+func TestHook_rpc(t *testing.T) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.RegisterMethod(glightning.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
+	plugin.RegisterOption(glightning.NewOption("greeting", "How you'd like to be called", "Mary"))
+
+	plugin.RegisterHooks(&glightning.Hooks{
+		RpcCommand: func(rce *glightning.RpcCommandEvent) (*jrpc2.RpcCommandResponse, error) {
+			return rce.ReturnResult("You can't call this command")
+		},
+	})
+	msg := `{"jsonrpc":"2.0", "id":"aloha", "method":"rpc_command"}`
+	resp := `{"jsonrpc":"2.0","result":{"return":{"result":"You can't call this command"}},"id":"aloha"}`
+	runTest(t, plugin, msg+"\n\n", resp)
+}
+
 func TestSubscription_SendPaySuccess(t *testing.T) {
 	var wg sync.WaitGroup
 	defer await(t, &wg)

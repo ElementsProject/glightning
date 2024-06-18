@@ -38,7 +38,7 @@ const (
 var lightningMethodRegistry map[string]*jrpc2.Method
 
 // The custommsg plugin hook is the receiving counterpart to the dev-sendcustommsg RPC method
-//and allows plugins to handle messages that are not handled internally.
+// and allows plugins to handle messages that are not handled internally.
 type CustomMsgReceivedEvent struct {
 	PeerId  string `json:"peer_id"`
 	Payload string `json:"payload"`
@@ -81,8 +81,9 @@ func (pc *CustomMsgReceivedEvent) Fail() *CustomMsgReceivedResponse {
 }
 
 // This hook is called whenever a peer has connected and successfully completed
-//   the cryptographic handshake. The parameters have the following structure if
-//   there is a channel with the peer:
+//
+//	the cryptographic handshake. The parameters have the following structure if
+//	there is a channel with the peer:
 type PeerConnectedEvent struct {
 	Peer PeerEvent `json:"peer"`
 	hook func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
@@ -293,7 +294,7 @@ func (oc *OpenChannelEvent) ContinueWithCloseTo(address string) *OpenChannelResp
 
 type RpcCommandEvent struct {
 	Cmd  RpcCmd `json:"rpc_command"`
-	hook func(*RpcCommandEvent) (*RpcCommandResponse, error)
+	hook func(*RpcCommandEvent) (*jrpc2.RpcCommandResponse, error)
 }
 
 type RpcCmd struct {
@@ -375,17 +376,6 @@ func (r *RpcCmd) Get() (jrpc2.Method, error) {
 	return r.m, err
 }
 
-// the result can be any of the following. providing more than
-// one's behavior is undefined. the API around this should protect you
-// from that, however
-type RpcCommandResponse struct {
-	// deprecated in v0.8.1
-	Continue   *bool              `json:"continue,omitempty"`
-	Result     _RpcCommand_Result `json:"result,omitempty"`
-	ReplaceObj *jrpc2.Request     `json:"replace,omitempty"`
-	ReturnObj  json.RawMessage    `json:"return,omitempty"`
-}
-
 type RpcCommand_Return interface{}
 type _RpcCommand_Result string
 
@@ -393,26 +383,26 @@ const (
 	_RpcCommand_Continue _RpcCommand_Result = "continue"
 )
 
-func (rc *RpcCommandEvent) Continue() *RpcCommandResponse {
-	return &RpcCommandResponse{
-		Result: _RpcCommand_Continue,
+func (rc *RpcCommandEvent) Continue() *jrpc2.RpcCommandResponse {
+	return &jrpc2.RpcCommandResponse{
+		Result: string(_RpcCommand_Continue),
 	}
 }
 
 // Replace the existing command with a new command. for usability reasons, we
 // unilaterally reuse the id of the original command
-func (rc *RpcCommandEvent) ReplaceWith(m jrpc2.Method) *RpcCommandResponse {
+func (rc *RpcCommandEvent) ReplaceWith(m jrpc2.Method) *jrpc2.RpcCommandResponse {
 	// the marshalling call on this also includes a version field
 	// which shouldn't affect parsing
 	id, _ := rc.Cmd.Id()
 	req := &jrpc2.Request{id, m}
 
-	return &RpcCommandResponse{
+	return &jrpc2.RpcCommandResponse{
 		ReplaceObj: req,
 	}
 }
 
-func (rc *RpcCommandEvent) ReturnResult(resp RpcCommand_Return) (*RpcCommandResponse, error) {
+func (rc *RpcCommandEvent) ReturnResult(resp RpcCommand_Return) (*jrpc2.RpcCommandResponse, error) {
 	result := &struct {
 		Result RpcCommand_Return `json:"result"`
 	}{
@@ -422,12 +412,12 @@ func (rc *RpcCommandEvent) ReturnResult(resp RpcCommand_Return) (*RpcCommandResp
 	if err != nil {
 		return nil, err
 	}
-	return &RpcCommandResponse{
+	return &jrpc2.RpcCommandResponse{
 		ReturnObj: marshaled,
 	}, nil
 }
 
-func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandResponse, error) {
+func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*jrpc2.RpcCommandResponse, error) {
 	type ErrResp struct {
 		Message string `json:"message"`
 		Code    int    `json:"code"`
@@ -441,7 +431,7 @@ func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandR
 	if err != nil {
 		return nil, err
 	}
-	return &RpcCommandResponse{
+	return &jrpc2.RpcCommandResponse{
 		ReturnObj: marshaled,
 	}, nil
 }
@@ -450,10 +440,11 @@ func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandR
 // its result determines how `lightningd` should treat that HTLC.
 //
 // Warning: `lightningd` will replay the HTLCs for which it doesn't have a final
-//   verdict during startup. This means that, if the plugin response wasn't
-//   processed before the HTLC was forwarded, failed, or resolved, then the plugin
-//   may see the same HTLC again during startup. It is therefore paramount that the
-//   plugin is idempotent if it talks to an external system.
+//
+//	verdict during startup. This means that, if the plugin response wasn't
+//	processed before the HTLC was forwarded, failed, or resolved, then the plugin
+//	may see the same HTLC again during startup. It is therefore paramount that the
+//	plugin is idempotent if it talks to an external system.
 type HtlcAcceptedEvent struct {
 	Onion Onion     `json:"onion"`
 	Htlc  HtlcOffer `json:"htlc"`
@@ -1182,14 +1173,15 @@ func (p *Plugin) Log(message string, level LogLevel) {
 }
 
 // Map for registering hooks. Not the *most* elegant but
-//   it'll do for now.
+//
+//	it'll do for now.
 type Hooks struct {
 	PeerConnected     func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
 	DbWrite           func(*DbWriteEvent) (*DbWriteResponse, error)
 	InvoicePayment    func(*InvoicePaymentEvent) (*InvoicePaymentResponse, error)
 	OpenChannel       func(*OpenChannelEvent) (*OpenChannelResponse, error)
 	HtlcAccepted      func(*HtlcAcceptedEvent) (*HtlcAcceptedResponse, error)
-	RpcCommand        func(*RpcCommandEvent) (*RpcCommandResponse, error)
+	RpcCommand        func(*RpcCommandEvent) (*jrpc2.RpcCommandResponse, error)
 	CustomMsgReceived func(*CustomMsgReceivedEvent) (*CustomMsgReceivedResponse, error)
 }
 

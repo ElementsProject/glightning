@@ -191,7 +191,7 @@ func OnHtlcAccepted(event *glightning.HtlcAcceptedEvent) (*glightning.HtlcAccept
 	return event.Continue(), nil
 }
 
-func OnRpcCommand(event *glightning.RpcCommandEvent) (*glightning.RpcCommandResponse, error) {
+func OnRpcCommand(event *glightning.RpcCommandEvent) (*jrpc2.RpcCommandResponse, error) {
 	cmd := event.Cmd
 	id, _ := cmd.Id()
 	log.Printf("command %s called id %s", cmd.MethodName, id)

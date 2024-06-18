@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/elementsproject/glightning/glightning"
+	"github.com/elementsproject/glightning/jrpc2"
 )
 
 func main() {
@@ -23,7 +24,7 @@ func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, con
 	log.Printf("successfully init'd! %s\n", config.RpcFile)
 }
 
-func OnRpcCommand(event *glightning.RpcCommandEvent) (*glightning.RpcCommandResponse, error) {
+func OnRpcCommand(event *glightning.RpcCommandEvent) (*jrpc2.RpcCommandResponse, error) {
 	cmd := event.Cmd
 	id, _ := cmd.Id()
 	log.Printf("command %s called id %s", cmd.MethodName, id)
@@ -50,7 +51,7 @@ func OnRpcCommand(event *glightning.RpcCommandEvent) (*glightning.RpcCommandResp
 	return event.Continue(), nil
 }
 
-func handleNewAddrRequest(event *glightning.RpcCommandEvent, req *glightning.NewAddrRequest) (*glightning.RpcCommandResponse, error) {
+func handleNewAddrRequest(event *glightning.RpcCommandEvent, req *glightning.NewAddrRequest) (*jrpc2.RpcCommandResponse, error) {
 	// alway set address type to bech32
 	req.AddressType = "bech32"
 

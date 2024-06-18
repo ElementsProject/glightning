@@ -105,6 +105,7 @@ type Response struct {
 	Result Result    `json:"result,omitempty"`
 	Error  *RpcError `json:"error,omitempty"`
 	Id     *Id       `json:"id"`
+	RpcCommandResponse
 }
 
 // RawResponses are what the client gets back
@@ -119,6 +120,17 @@ type RawResponse struct {
 }
 
 type Result interface{}
+
+// the result can be any of the following. providing more than
+// one's behavior is undefined. the API around this should protect you
+// from that, however
+type RpcCommandResponse struct {
+	// deprecated in v0.8.1
+	Continue   *bool           `json:"continue,omitempty"`
+	Result     string          `json:"result,omitempty"`
+	ReplaceObj *Request        `json:"replace,omitempty"`
+	ReturnObj  json.RawMessage `json:"return,omitempty"`
+}
 
 type RpcError struct {
 	Code    int             `json:"code"`

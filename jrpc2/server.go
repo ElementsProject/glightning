@@ -188,6 +188,10 @@ func processMsg(s *Server, data []byte) {
 		request.Method.(ServerMethod).Call()
 		return
 	}
+	if request.Method.Name() == "rpc_command" {
+		s.outQueue <- ExecuteHook(request.Id, request.Method.(ServerMethod))
+		return
+	}
 	// ok we've successfully gotten the method call out..
 	s.outQueue <- Execute(request.Id, request.Method.(ServerMethod))
 }
@@ -203,7 +207,20 @@ func Execute(id *Id, method ServerMethod) *Response {
 	} else {
 		resp.Result = result
 	}
+	return resp
+}
 
+func ExecuteHook(id *Id, method ServerMethod) *Response {
+	result, err := method.Call()
+	resp := &Response{
+		Id: id,
+	}
+	if err != nil {
+		// todo: data object for errors?
+		resp.Error = constructError(err)
+	} else {
+		resp.RpcCommandResponse = *result.(*RpcCommandResponse)
+	}
 	return resp
 }
 
