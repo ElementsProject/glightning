@@ -172,6 +172,14 @@ func (l *Lightning) GetConfig(config string) (interface{}, error) {
 	return result[config], err
 }
 
+type ListPeerChannelsRequest struct {
+	PeerId string `json:"id,omitempty"`
+}
+
+func (r ListPeerChannelsRequest) Name() string {
+	return "listpeerchannels"
+}
+
 type ListPeersRequest struct {
 	PeerId string `json:"id,omitempty"`
 	Level  string `json:"level,omitempty"`
@@ -293,6 +301,19 @@ func (l *Lightning) getPeers(peerId string, level LogLevel) ([]*Peer, error) {
 
 	err := l.client.Request(request, &result)
 	return result.Peers, err
+}
+
+// List channels for an optional peerId
+func (l *Lightning) ListPeerChannels(peerId string) ([]*PeerChannel, error) {
+	var result struct {
+		Channels []*PeerChannel `json:"channels"`
+	}
+
+	request := &ListPeerChannelsRequest{
+		PeerId: peerId,
+	}
+
+	return result.Channels, l.client.Request(request, &result)
 }
 
 type ListNodeRequest struct {
@@ -2584,6 +2605,7 @@ func init() {
 
 	Lightning_RpcMethods[(&ListConfigsRequest{}).Name()] = func() jrpc2.Method { return new(ListConfigsRequest) }
 	Lightning_RpcMethods[(&ListPeersRequest{}).Name()] = func() jrpc2.Method { return new(ListPeersRequest) }
+	Lightning_RpcMethods[(&ListPeerChannelsRequest{}).Name()] = func() jrpc2.Method { return new(ListPeerChannelsRequest) }
 	Lightning_RpcMethods[(&ListNodeRequest{}).Name()] = func() jrpc2.Method { return new(ListNodeRequest) }
 	Lightning_RpcMethods[(&RouteRequest{}).Name()] = func() jrpc2.Method { return new(RouteRequest) }
 	Lightning_RpcMethods[(&SendOnionRequest{}).Name()] = func() jrpc2.Method { return new(SendOnionRequest) }
