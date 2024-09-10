@@ -1,3 +1,5 @@
 todos
 tags
 build/
+.vscode/tasks.json
+.gitignore
