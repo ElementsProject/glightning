@@ -756,6 +756,32 @@ func TestSubscription_Disconnected(t *testing.T) {
 	runTest(t, plugin, msg+"\n\n", "")
 }
 
+func TestSubscription_Shutdown(t *testing.T) {
+	var wg sync.WaitGroup
+	defer await(t, &wg)
+	shutdownCalled := make(chan struct{})
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeShutdown(func() {
+		defer wg.Done()
+		shutdownCalled <- struct{}{}
+	})
+
+	msg := `{"jsonrpc":"2.0","method":"shutdown"}`
+
+	runTest(t, plugin, msg+"\n\n", "")
+
+	select {
+	case <-shutdownCalled:
+	case <-time.After(1 * time.Second):
+		t.Fatal("SubscribeShutdown was not called")
+	}
+}
+
 func await(t *testing.T, wg *sync.WaitGroup) {
 	awaitWithTimeout(t, wg, 1*time.Second)
 }
