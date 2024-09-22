@@ -26,6 +26,7 @@ const (
 	_Forward        Subscription = "forward_event"
 	_SendPaySuccess Subscription = "sendpay_success"
 	_SendPayFailure Subscription = "sendpay_failure"
+	_Shutdown       Subscription = "shutdown"
 	_PeerConnected  Hook         = "peer_connected"
 	_DbWrite        Hook         = "db_write"
 	_InvoicePayment Hook         = "invoice_payment"
@@ -38,7 +39,7 @@ const (
 var lightningMethodRegistry map[string]*jrpc2.Method
 
 // The custommsg plugin hook is the receiving counterpart to the dev-sendcustommsg RPC method
-//and allows plugins to handle messages that are not handled internally.
+// and allows plugins to handle messages that are not handled internally.
 type CustomMsgReceivedEvent struct {
 	PeerId  string `json:"peer_id"`
 	Payload string `json:"payload"`
@@ -81,8 +82,9 @@ func (pc *CustomMsgReceivedEvent) Fail() *CustomMsgReceivedResponse {
 }
 
 // This hook is called whenever a peer has connected and successfully completed
-//   the cryptographic handshake. The parameters have the following structure if
-//   there is a channel with the peer:
+//
+//	the cryptographic handshake. The parameters have the following structure if
+//	there is a channel with the peer:
 type PeerConnectedEvent struct {
 	Peer PeerEvent `json:"peer"`
 	hook func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
@@ -450,10 +452,11 @@ func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandR
 // its result determines how `lightningd` should treat that HTLC.
 //
 // Warning: `lightningd` will replay the HTLCs for which it doesn't have a final
-//   verdict during startup. This means that, if the plugin response wasn't
-//   processed before the HTLC was forwarded, failed, or resolved, then the plugin
-//   may see the same HTLC again during startup. It is therefore paramount that the
-//   plugin is idempotent if it talks to an external system.
+//
+//	verdict during startup. This means that, if the plugin response wasn't
+//	processed before the HTLC was forwarded, failed, or resolved, then the plugin
+//	may see the same HTLC again during startup. It is therefore paramount that the
+//	plugin is idempotent if it talks to an external system.
 type HtlcAcceptedEvent struct {
 	Onion Onion     `json:"onion"`
 	Htlc  HtlcOffer `json:"htlc"`
@@ -760,6 +763,25 @@ func (e *WarnEvent) New() interface{} {
 
 func (e *WarnEvent) Call() (jrpc2.Result, error) {
 	e.cb(&e.Warning)
+	return nil, nil
+}
+
+type ShutdownEvent struct {
+	cb func()
+}
+
+func (e *ShutdownEvent) Name() string {
+	return string(_Shutdown)
+}
+
+func (e *ShutdownEvent) New() interface{} {
+	return &ShutdownEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *ShutdownEvent) Call() (jrpc2.Result, error) {
+	e.cb()
 	return nil, nil
 }
 
@@ -1182,7 +1204,8 @@ func (p *Plugin) Log(message string, level LogLevel) {
 }
 
 // Map for registering hooks. Not the *most* elegant but
-//   it'll do for now.
+//
+//	it'll do for now.
 type Hooks struct {
 	PeerConnected     func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
 	DbWrite           func(*DbWriteEvent) (*DbWriteResponse, error)
@@ -1555,6 +1578,12 @@ func (p *Plugin) SubscribeSendPayFailure(cb func(c *SendPayFailure)) {
 
 func (p *Plugin) SubscribeForwardings(cb func(c *Forwarding)) {
 	p.subscribe(&ForwardEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeShutdown(cb func()) {
+	p.subscribe(&ShutdownEvent{
 		cb: cb,
 	})
 }
