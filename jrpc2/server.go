@@ -31,12 +31,16 @@ type Server struct {
 	registry sync.Map // map[string]ServerMethod
 	outQueue chan interface{}
 	shutdown bool
+	// shutdownChan is closed when the Shutdown is called.
+	// This is used to signal the listener to stop listening.
+	shutdownChan chan interface{}
 }
 
 func NewServer() *Server {
 	server := &Server{}
 	server.outQueue = make(chan interface{})
 	server.shutdown = false
+	server.shutdownChan = make(chan interface{})
 	return server
 }
 
@@ -71,6 +75,7 @@ func (s *Server) StartUp(in, out *os.File) error {
 
 func (s *Server) Shutdown() {
 	s.shutdown = true
+	close(s.shutdownChan)
 	close(s.outQueue)
 }
 
@@ -105,25 +110,46 @@ func (s *Server) listen(in io.Reader) error {
 	buf := make([]byte, 1024)
 	scanner.Buffer(buf, MaxIntakeBuffer)
 	scanner.Split(scanDoubleNewline)
-	for scanner.Scan() && !s.shutdown {
-		msg := scanner.Bytes()
-		if debugIO(true) {
-			log.Println(string(msg))
+
+	msgChan := make(chan []byte)
+	errChan := make(chan error)
+
+	// listen reads messages from the provided io.Reader and processes them.
+	// It uses a bufio.Scanner to read messages separated by double newline
+	// characters. Messages are processed concurrently using goroutines.
+	// The function listens for shutdown signals via the shutdownChan channel.
+	go func() {
+		for scanner.Scan() {
+			msg := scanner.Bytes()
+			msg_buf := make([]byte, len(msg))
+			copy(msg_buf, msg)
+			msgChan <- msg_buf
 		}
-		// pass down a copy so things stay sane
-		msg_buf := make([]byte, len(msg))
-		copy(msg_buf, msg)
-		// todo: send this over a channel
-		// for processing, so the number
-		// of things we process at once
-		// is more easy to control
-		go processMsg(s, msg_buf)
+		if err := scanner.Err(); err != nil {
+			errChan <- err
+		}
+		close(msgChan)
+		close(errChan)
+	}()
+
+	for {
+		select {
+		case msg, ok := <-msgChan:
+			if !ok {
+				return nil
+			}
+			if debugIO(true) {
+				log.Println(string(msg))
+			}
+			go processMsg(s, msg)
+		case err := <-errChan:
+			if err != nil {
+				return err
+			}
+		case <-s.shutdownChan:
+			return nil
+		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-		return err
-	}
-	return nil
 }
 
 func (s *Server) setupWriteQueue(outWriter io.Writer) {
