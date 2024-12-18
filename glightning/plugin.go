@@ -554,10 +554,22 @@ func (ha *HtlcAcceptedEvent) Resolve(paymentKey string) *HtlcAcceptedResponse {
 	}
 }
 
+// ConnectEvent represents an event triggered when a peer connects.
+// For versions prior to cln v24.11, the PeerId and Address members are used.
+// For backward compatibility, these members are retained.
+// From cln v24.11 onwards, all notifications wrap members in an object
+// with the same name.
+// https://github.com/ElementsProject/lightning/blob/84f30b12f789937f0b0653892f5ba6ca3480aca8/doc/developers-guide/deprecations.md
 type ConnectEvent struct {
 	PeerId  string  `json:"id"`
 	Address Address `json:"address"`
+	Conn    Connect `json:"connect"`
 	cb      func(*ConnectEvent)
+}
+
+type Connect struct {
+	PeerId  string  `json:"id"`
+	Address Address `json:"address"`
 }
 
 func (e *ConnectEvent) Name() string {
@@ -575,9 +587,19 @@ func (e *ConnectEvent) Call() (jrpc2.Result, error) {
 	return nil, nil
 }
 
+// DisconnectEvent represents an event triggered when a peer disconnects.
+// For versions prior to cln v24.11, the PeerId is used.
+// For backward compatibility, these members are retained.
+// From cln v24.11 onwards, all notifications wrap members in an object
+// with the same name.
+// https://github.com/ElementsProject/lightning/blob/84f30b12f789937f0b0653892f5ba6ca3480aca8/doc/developers-guide/deprecations.md
 type DisconnectEvent struct {
+	PeerId     string     `json:"id"`
+	Disconnect Disconnect `json:"disconnect"`
+	cb         func(d *DisconnectEvent)
+}
+type Disconnect struct {
 	PeerId string `json:"id"`
-	cb     func(d *DisconnectEvent)
 }
 
 func (e *DisconnectEvent) Name() string {
