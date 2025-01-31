@@ -610,15 +610,16 @@ func (r *DecodeRawTransactionReq) Name() string {
 }
 
 type Tx struct {
-	TxId        string      `json:"txid"`
-	Hash        string      `json:"hash"`
-	Size        uint        `json:"size"`
-	VirtualSize uint        `json:"vsize"`
-	Weight      uint        `json:"weight"`
-	Version     uint        `json:"version"`
-	Locktime    uint32      `json:"locktime"`
-	Inputs      []*TxInput  `json:"vin"`
-	Outputs     []*TxOutput `json:"vout"`
+	TxId                string      `json:"txid"`
+	Hash                string      `json:"hash"`
+	Size                uint        `json:"size"`
+	VirtualSize         uint        `json:"vsize"`
+	DiscountVirtualSize uint        `json:"discountvsize"`
+	Weight              uint        `json:"weight"`
+	Version             uint        `json:"version"`
+	Locktime            uint32      `json:"locktime"`
+	Inputs              []*TxInput  `json:"vin"`
+	Outputs             []*TxOutput `json:"vout"`
 }
 
 type TxInput struct {
