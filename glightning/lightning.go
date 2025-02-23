@@ -1050,7 +1050,7 @@ func (l *Lightning) DecodeBolt11(bolt11 string) (*DecodedBolt11, error) {
 // Deprecated: DecodePay is deprecated, use Decode or DecodeBolt11 instead
 // Decode the {bolt11}, using the provided 'description' if necessary.*
 //
-// * This is only necesary if the bolt11 includes a description hash.
+// * This is only necessary if the bolt11 includes a description hash.
 // The provided description must match the included hash.
 func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 	if bolt11 == "" {
@@ -1450,8 +1450,8 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 // payment value. If not specified, it will be the final amount to the
 // destination (specified in route).  If specified, then the final amount
 // at the destination must be from the specified 'msat' to twice that
-// value, inclusive. This is inteded to obscure payments by overpaying
-// slightly at the destination -- the acutal target paymnt is what
+// value, inclusive. This is intended to obscure payments by overpaying
+// slightly at the destination -- the actual target paymnt is what
 // should be specified as the 'msat' argument.
 //
 // Once a payment has succeeded, calls to 'SendPay' with the same
@@ -1623,7 +1623,7 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 		return nil, fmt.Errorf("Must supply a Bolt11 to pay")
 	}
 	if req.RiskFactor < 0 {
-		return nil, fmt.Errorf("Risk factor must be postiive %f", req.RiskFactor)
+		return nil, fmt.Errorf("Risk factor must be positive %f", req.RiskFactor)
 	}
 	if req.MaxFeePercent < 0 || req.MaxFeePercent > 100 {
 		return nil, fmt.Errorf("MaxFeePercent must be a percentage. %f", req.MaxFeePercent)
