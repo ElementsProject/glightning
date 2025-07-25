@@ -898,6 +898,39 @@ func (l *Lightning) SetInvoiceAutoclean(intervalSeconds, expiredBySeconds uint32
 	return err
 }
 
+// DecodeRequest for the new 'decode' RPC command (replaces decodepay)
+type DecodeRequest struct {
+	String string `json:"string"`
+}
+
+func (r DecodeRequest) Name() string {
+	return "decode"
+}
+
+// DecodeResult represents the response from decode command
+type DecodeResult struct {
+	Type               string        `json:"type"`
+	Valid              bool          `json:"valid"`
+	// BOLT11 specific fields (when type is "bolt11 invoice")
+	Currency           string        `json:"currency,omitempty"`
+	CreatedAt          uint64        `json:"created_at,omitempty"`
+	Expiry             uint64        `json:"expiry,omitempty"`
+	Payee              string        `json:"payee,omitempty"`
+	MilliSatoshis      uint64        `json:"msatoshi,omitempty"`
+	AmountMsat         *Amount       `json:"amount_msat,omitempty"`
+	PaymentHash        string        `json:"payment_hash,omitempty"`
+	Description        string        `json:"description,omitempty"`
+	DescriptionHash    string        `json:"description_hash,omitempty"`
+	MinFinalCltvExpiry uint          `json:"min_final_cltv_expiry,omitempty"`
+	PaymentSecret      string        `json:"payment_secret,omitempty"`
+	Features           *Hexed        `json:"features,omitempty"`
+	Fallbacks          []Fallback    `json:"fallbacks,omitempty"`
+	Routes             [][]BoltRoute `json:"routes,omitempty"`
+	Extra              []BoltExtra   `json:"extra,omitempty"`
+	Signature          string        `json:"signature,omitempty"`
+}
+
+// Deprecated: DecodePayRequest is deprecated, use DecodeRequest instead
 type DecodePayRequest struct {
 	Bolt11      string `json:"bolt11"`
 	Description string `json:"description,omitempty"`
@@ -946,10 +979,75 @@ type BoltExtra struct {
 	Data string `json:"data"`
 }
 
-func (l *Lightning) DecodeBolt11(bolt11 string) (*DecodedBolt11, error) {
-	return l.DecodePay(bolt11, "")
+// Decode uses the new 'decode' command that can decode bolt11, bolt12, rune, etc.
+func (l *Lightning) Decode(str string) (*DecodeResult, error) {
+	if str == "" {
+		return nil, fmt.Errorf("Must provide a string to decode")
+	}
+	
+	var result DecodeResult
+	err := l.client.Request(&DecodeRequest{String: str}, &result)
+	return &result, err
 }
 
+// DecodeBolt11 decodes a bolt11 invoice using the new decode command
+func (l *Lightning) DecodeBolt11(bolt11 string) (*DecodedBolt11, error) {
+	decoded, err := l.Decode(bolt11)
+	if err != nil {
+		// Fallback to old decodepay for compatibility
+		return l.DecodePay(bolt11, "")
+	}
+	
+	if !decoded.Valid {
+		return nil, fmt.Errorf("Invalid bolt11 invoice")
+	}
+	
+	if decoded.Type != "bolt11 invoice" {
+		return nil, fmt.Errorf("Not a bolt11 invoice: %s", decoded.Type)
+	}
+	
+	// Convert DecodeResult to DecodedBolt11 for backward compatibility
+	result := &DecodedBolt11{
+		Currency:           decoded.Currency,
+		CreatedAt:          decoded.CreatedAt,
+		Expiry:             decoded.Expiry,
+		Payee:              decoded.Payee,
+		MilliSatoshis:      decoded.MilliSatoshis,
+		PaymentHash:        decoded.PaymentHash,
+		Description:        decoded.Description,
+		DescriptionHash:    decoded.DescriptionHash,
+		MinFinalCltvExpiry: int(decoded.MinFinalCltvExpiry),
+		PaymentSecret:      decoded.PaymentSecret,
+		Signature:          decoded.Signature,
+	}
+	
+	// Handle optional fields
+	if decoded.AmountMsat != nil {
+		result.AmountMsat = *decoded.AmountMsat
+	} else {
+		result.AmountMsat = AmountFromMSat(decoded.MilliSatoshis)
+	}
+	
+	if decoded.Features != nil {
+		result.Features = *decoded.Features
+	}
+	
+	if decoded.Fallbacks != nil {
+		result.Fallbacks = decoded.Fallbacks
+	}
+	
+	if decoded.Routes != nil {
+		result.Routes = decoded.Routes
+	}
+	
+	if decoded.Extra != nil {
+		result.Extra = decoded.Extra
+	}
+	
+	return result, nil
+}
+
+// Deprecated: DecodePay is deprecated, use Decode or DecodeBolt11 instead
 // Decode the {bolt11}, using the provided 'description' if necessary.*
 //
 // * This is only necesary if the bolt11 includes a description hash.
@@ -2667,6 +2765,7 @@ func init() {
 	Lightning_RpcMethods[(&WaitInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(WaitInvoiceRequest) }
 	Lightning_RpcMethods[(&DeleteExpiredInvoiceReq{}).Name()] = func() jrpc2.Method { return new(DeleteExpiredInvoiceReq) }
 	Lightning_RpcMethods[(&AutoCleanInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(AutoCleanInvoiceRequest) }
+	Lightning_RpcMethods[(&DecodeRequest{}).Name()] = func() jrpc2.Method { return new(DecodeRequest) }
 	Lightning_RpcMethods[(&DecodePayRequest{}).Name()] = func() jrpc2.Method { return new(DecodePayRequest) }
 	Lightning_RpcMethods[(&PayStatusRequest{}).Name()] = func() jrpc2.Method { return new(PayStatusRequest) }
 	Lightning_RpcMethods[(&HelpRequest{}).Name()] = func() jrpc2.Method { return new(HelpRequest) }
