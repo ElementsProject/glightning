@@ -1553,6 +1553,7 @@ type PayRequest struct {
 	RetryFor      uint    `json:"retry_for,omitempty"`
 	MaxDelay      uint    `json:"maxdelay,omitempty"`
 	ExemptFee     bool    `json:"exemptfee,omitempty"`
+	MaxFee        uint64  `json:"maxfee,omitempty"`
 }
 
 func (r PayRequest) Name() string {
