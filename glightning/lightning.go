@@ -909,8 +909,8 @@ func (r DecodeRequest) Name() string {
 
 // DecodeResult represents the response from decode command
 type DecodeResult struct {
-	Type               string        `json:"type"`
-	Valid              bool          `json:"valid"`
+	Type  string `json:"type"`
+	Valid bool   `json:"valid"`
 	// BOLT11 specific fields (when type is "bolt11 invoice")
 	Currency           string        `json:"currency,omitempty"`
 	CreatedAt          uint64        `json:"created_at,omitempty"`
@@ -984,7 +984,7 @@ func (l *Lightning) Decode(str string) (*DecodeResult, error) {
 	if str == "" {
 		return nil, fmt.Errorf("Must provide a string to decode")
 	}
-	
+
 	var result DecodeResult
 	err := l.client.Request(&DecodeRequest{String: str}, &result)
 	return &result, err
@@ -997,15 +997,15 @@ func (l *Lightning) DecodeBolt11(bolt11 string) (*DecodedBolt11, error) {
 		// Fallback to old decodepay for compatibility
 		return l.DecodePay(bolt11, "")
 	}
-	
+
 	if !decoded.Valid {
 		return nil, fmt.Errorf("Invalid bolt11 invoice")
 	}
-	
+
 	if decoded.Type != "bolt11 invoice" {
 		return nil, fmt.Errorf("Not a bolt11 invoice: %s", decoded.Type)
 	}
-	
+
 	// Convert DecodeResult to DecodedBolt11 for backward compatibility
 	result := &DecodedBolt11{
 		Currency:           decoded.Currency,
@@ -1020,30 +1020,30 @@ func (l *Lightning) DecodeBolt11(bolt11 string) (*DecodedBolt11, error) {
 		PaymentSecret:      decoded.PaymentSecret,
 		Signature:          decoded.Signature,
 	}
-	
+
 	// Handle optional fields
 	if decoded.AmountMsat != nil {
 		result.AmountMsat = *decoded.AmountMsat
 	} else {
 		result.AmountMsat = AmountFromMSat(decoded.MilliSatoshis)
 	}
-	
+
 	if decoded.Features != nil {
 		result.Features = *decoded.Features
 	}
-	
+
 	if decoded.Fallbacks != nil {
 		result.Fallbacks = decoded.Fallbacks
 	}
-	
+
 	if decoded.Routes != nil {
 		result.Routes = decoded.Routes
 	}
-	
+
 	if decoded.Extra != nil {
 		result.Extra = decoded.Extra
 	}
-	
+
 	return result, nil
 }
 
@@ -1659,7 +1659,7 @@ func (l *Lightning) ListPays() ([]PaymentFields, error) {
 
 func (l *Lightning) ListPaysToBolt11(bolt11 string) ([]PaymentFields, error) {
 	var result struct {
-		Payments []PaymentFields `json:"payments"`
+		Payments []PaymentFields `json:"pays"`
 	}
 	err := l.client.Request(&ListPaysRequest{bolt11}, &result)
 	return result.Payments, err
