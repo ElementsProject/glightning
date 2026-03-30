@@ -1091,12 +1091,22 @@ func (fb *FeatureBits) AreSet() bool {
 }
 
 type Manifest struct {
-	Options       []Option     `json:"options"`
-	RpcMethods    []*RpcMethod `json:"rpcmethods"`
-	Dynamic       bool         `json:"dynamic"`
-	Subscriptions []string     `json:"subscriptions,omitempty"`
-	Hooks         []Hook       `json:"hooks,omitempty"`
-	FeatureBits   *FeatureBits `json:"featurebits,omitempty"`
+	Options       []Option            `json:"options"`
+	RpcMethods    []*RpcMethod        `json:"rpcmethods"`
+	Dynamic       bool                `json:"dynamic"`
+	Subscriptions []string            `json:"subscriptions,omitempty"`
+	Hooks         []Hook              `json:"hooks,omitempty"`
+	FeatureBits   *FeatureBits        `json:"featurebits,omitempty"`
+	Notifications []NotificationTopic `json:"notifications,omitempty"`
+}
+
+type NotificationTopic struct {
+	Method      string `json:"method"`
+	Description string `json:"description,omitempty"`
+}
+
+type Notification interface {
+	Name() string
 }
 
 func (gm GetManifestMethod) Name() string {
@@ -1144,6 +1154,11 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 		}
 	}
 	m.FeatureBits = gm.plugin.features
+
+	m.Notifications = make([]NotificationTopic, len(gm.plugin.notifications))
+	for i, notif := range gm.plugin.notifications {
+		m.Notifications[i] = notif
+	}
 
 	return m, nil
 }
@@ -1317,6 +1332,7 @@ type Plugin struct {
 	stopped       bool
 	dynamic       bool
 	features      *FeatureBits
+	notifications []NotificationTopic
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]Option, c *Config)) *Plugin {
@@ -1498,6 +1514,21 @@ func (p *Plugin) UnregisterOption(o Option) error {
 	return nil
 }
 
+func (p *Plugin) RegisterNotificationTopic(topic string, description string) {
+	p.notifications = append(p.notifications, NotificationTopic{
+		Method:      topic,
+		Description: description,
+	})
+}
+
+func (p *Plugin) EmitCustomNotification(payload Notification) error {
+	if err := p.server.Notify(payload); err != nil {
+		return fmt.Errorf("failed to emit notification for topic %s: %w", payload.Name(), err)
+	}
+
+	return nil
+}
+
 // this always returns a string option. left as is for legacy reasons
 func (p *Plugin) GetOption(name string) (string, error) {
 	opt := p.options[name]
@@ -1557,60 +1588,60 @@ func (p *Plugin) getOptionSet() map[string]Option {
 }
 
 func (p *Plugin) SubscribeConnect(cb func(c *ConnectEvent)) {
-	p.subscribe(&ConnectEvent{
+	p.Subscribe(&ConnectEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeDisconnect(cb func(c *DisconnectEvent)) {
-	p.subscribe(&DisconnectEvent{
+	p.Subscribe(&DisconnectEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeInvoicePaid(cb func(c *Payment)) {
-	p.subscribe(&InvoicePaidEvent{
+	p.Subscribe(&InvoicePaidEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeChannelOpened(cb func(c *ChannelOpened)) {
-	p.subscribe(&ChannelOpenedEvent{
+	p.Subscribe(&ChannelOpenedEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeWarnings(cb func(c *Warning)) {
-	p.subscribe(&WarnEvent{
+	p.Subscribe(&WarnEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeSendPaySuccess(cb func(c *SendPaySuccess)) {
-	p.subscribe(&SendPaySuccessEvent{
+	p.Subscribe(&SendPaySuccessEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeSendPayFailure(cb func(c *SendPayFailure)) {
-	p.subscribe(&SendPayFailureEvent{
+	p.Subscribe(&SendPayFailureEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeForwardings(cb func(c *Forwarding)) {
-	p.subscribe(&ForwardEvent{
+	p.Subscribe(&ForwardEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeShutdown(cb func()) {
-	p.subscribe(&ShutdownEvent{
+	p.Subscribe(&ShutdownEvent{
 		cb: cb,
 	})
 }
 
-func (p *Plugin) subscribe(subscription jrpc2.ServerMethod) {
+func (p *Plugin) Subscribe(subscription jrpc2.ServerMethod) {
 	p.server.Register(subscription)
 	p.subscriptions = append(p.subscriptions, subscription.Name())
 }

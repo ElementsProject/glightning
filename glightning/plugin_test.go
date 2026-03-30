@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -754,6 +755,65 @@ func TestSubscription_Disconnected(t *testing.T) {
 	msg := `{"jsonrpc":"2.0","method":"disconnect","params":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6"}}`
 
 	runTest(t, plugin, msg+"\n\n", "")
+}
+
+type testCustomPayload struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+}
+
+type testCustomEvent struct {
+	Payload testCustomPayload `json:"custom-topic"`
+	cb      func(payload *testCustomPayload)
+}
+
+func (e *testCustomEvent) Name() string {
+	return "custom-topic"
+}
+
+func (e *testCustomEvent) New() interface{} {
+	return &testCustomEvent{cb: e.cb}
+}
+
+func (e *testCustomEvent) Call() (jrpc2.Result, error) {
+	e.cb(&e.Payload)
+	return nil, nil
+}
+
+func TestSubscription_CustomEventNotification(t *testing.T) {
+	var wg sync.WaitGroup
+	defer await(t, &wg)
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+
+	plugin := glightning.NewPlugin(initFn)
+
+	plugin.Subscribe(&testCustomEvent{
+		cb: func(payload *testCustomPayload) {
+			defer wg.Done()
+
+			assert.Equal(t, "Hello World", payload.Message)
+			assert.Equal(t, 200, payload.Code)
+		},
+	})
+
+	msg := `{
+       "jsonrpc":"2.0",
+       "method":"custom-topic",
+       "params":{
+          "custom-topic":{
+             "message":"Hello World",
+             "code": 200
+          }
+       }
+    }`
+
+	compactMsg := strings.ReplaceAll(strings.ReplaceAll(msg, "\n", ""), "\t", "")
+
+	runTest(t, plugin, compactMsg+"\n\n", "")
 }
 
 func TestSubscription_Shutdown(t *testing.T) {
