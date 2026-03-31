@@ -1509,7 +1509,7 @@ func (p *Plugin) RegisterNotificationTopic(topic string, description string) {
 	})
 }
 
-func (p *Plugin) EmitCustomNotification(payload Notification) error {
+func (p *Plugin) EmitCustomNotification(payload jrpc2.Method) error {
 	if err := p.server.Notify(payload); err != nil {
 		return fmt.Errorf("failed to emit notification for topic %s: %w", payload.Name(), err)
 	}
