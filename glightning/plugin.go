@@ -1131,20 +1131,12 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 	}
 
 	m.Options = make([]Option, len(gm.plugin.options))
-	i := 0
 	for _, option := range gm.plugin.options {
-		m.Options[i] = option
-		i++
-	}
-	m.Subscriptions = make([]string, len(gm.plugin.subscriptions))
-	for i, sub := range gm.plugin.subscriptions {
-		m.Subscriptions[i] = sub
-	}
-	m.Hooks = make([]Hook, len(gm.plugin.hooks))
-	for i, hook := range gm.plugin.hooks {
-		m.Hooks[i] = hook
+		m.Options = append(m.Options, option)
 	}
 
+	m.Subscriptions = gm.plugin.subscriptions
+	m.Hooks = gm.plugin.hooks
 	m.Dynamic = gm.plugin.dynamic
 
 	if gm.plugin.features.AreSet() {
@@ -1154,11 +1146,7 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 		}
 	}
 	m.FeatureBits = gm.plugin.features
-
-	m.Notifications = make([]NotificationTopic, len(gm.plugin.notifications))
-	for i, notif := range gm.plugin.notifications {
-		m.Notifications[i] = notif
-	}
+	m.Notifications = gm.plugin.notifications
 
 	return m, nil
 }
