@@ -1130,7 +1130,7 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 		}
 	}
 
-	m.Options = make([]Option, len(gm.plugin.options))
+	m.Options = make([]Option, 0, len(gm.plugin.options))
 	for _, option := range gm.plugin.options {
 		m.Options = append(m.Options, option)
 	}
