@@ -375,7 +375,8 @@ func innerParseNamed(targetValue reflect.Value, params map[string]interface{}) e
 			// check for the json tag match, as well a simple
 			// lower case name match
 			tag, _ := fT.Tag.Lookup("json")
-			if tag == key || key == strings.ToLower(fT.Name) {
+			name, _ := parseTag(tag)
+			if name == key || key == strings.ToLower(fT.Name) {
 				found = true
 				err := innerParse(targetValue, fVal, value)
 				if err != nil {
@@ -518,6 +519,15 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 	case reflect.Ptr:
 		if v.Kind() == reflect.Invalid {
 			// i'm afraid that's a nil, my dear
+			return nil
+		}
+		if fVal.Type().Elem().Kind() != reflect.Struct {
+			n := reflect.New(fVal.Type().Elem())
+			err := innerParse(targetValue, n.Elem(), value)
+			if err != nil {
+				return err
+			}
+			fVal.Set(n)
 			return nil
 		}
 		if v.Kind() != reflect.Map {
