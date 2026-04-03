@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// // This section (below) is for method json marshalling,
+// This section (below) is for method json marshalling,
 // with special emphasis on how the parameters get marshalled
 // and unmarshalled to/from 'Method' objects
 type HelloMethod struct {
