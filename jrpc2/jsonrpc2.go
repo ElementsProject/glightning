@@ -1,6 +1,7 @@
 package jrpc2
 
 import (
+	"encoding"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -312,6 +313,10 @@ func GetNamedParams(target Method) map[string]interface{} {
 }
 
 func isZero(x interface{}) bool {
+	if x == nil {
+		return true
+	}
+
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
 
@@ -354,10 +359,7 @@ func ParseNamedParams(target Method, params map[string]interface{}) error {
 	targetValue := reflect.Indirect(reflect.ValueOf(target))
 	err := innerParseNamed(targetValue, params)
 	if err != nil {
-		fmt.Println("ERR")
-		fmt.Println(err)
-		fmt.Println(targetValue)
-		fmt.Println(params)
+		return err
 	}
 	return nil
 }
@@ -372,12 +374,16 @@ func innerParseNamed(targetValue reflect.Value, params map[string]interface{}) e
 				continue
 			}
 			fT := tType.Field(i)
-			// check for the json tag match, as well a simple
-			// lower case name match
 			tag, _ := fT.Tag.Lookup("json")
-			name, _ := parseTag(tag)
+
+			name, omit := parseTag(tag)
+
 			if name == key || key == strings.ToLower(fT.Name) {
 				found = true
+				if omit && isZero(value) {
+					break
+				}
+
 				err := innerParse(targetValue, fVal, value)
 				if err != nil {
 					return err
@@ -412,14 +418,12 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 	}
 
 	// json.RawMessage escape hatch
-	var eg json.RawMessage
-	if fVal.Type() == reflect.TypeOf(eg) {
+	if strings.Contains(fVal.Type().String(), "RawMessage") {
 		out, err := json.Marshal(value)
 		if err != nil {
 			return err
 		}
-		jm := json.RawMessage(out)
-		fVal.Set(reflect.ValueOf(jm))
+		fVal.Set(reflect.ValueOf(out).Convert(fVal.Type()))
 		return nil
 	}
 
@@ -474,8 +478,12 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
-		av := value.([]interface{})
+		av, ok := value.([]interface{})
+		if !ok {
+			return NewError(nil, InvalidParams, fmt.Sprintf("Expected JSON array for slice field %s, but got %T", fVal.Type().Name(), value))
+		}
 		fVal.Set(reflect.MakeSlice(fVal.Type(), len(av), len(av)))
+
 		for i := range av {
 			err := innerParse(targetValue, fVal.Index(i), av[i])
 			if err != nil {
@@ -518,9 +526,39 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		}
 	case reflect.Ptr:
 		if v.Kind() == reflect.Invalid {
-			// i'm afraid that's a nil, my dear
 			return nil
 		}
+
+		umType := reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+		tmType := reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+		ptrType := fVal.Type()
+
+		if ptrType.Implements(umType) || reflect.PointerTo(ptrType.Elem()).Implements(umType) {
+			n := reflect.New(ptrType.Elem())
+			data, err := json.Marshal(value)
+			if err != nil {
+				return err
+			}
+			if err := json.Unmarshal(data, n.Interface()); err != nil {
+				return err
+			}
+			fVal.Set(n)
+			return nil
+		}
+
+		if ptrType.Implements(tmType) || reflect.PointerTo(ptrType.Elem()).Implements(tmType) {
+			s, ok := value.(string)
+			if !ok {
+				return NewError(nil, InvalidParams, fmt.Sprintf("Expected string input for %s.%s, but got %T", targetValue.Type().Name(), fVal.Type().Name(), value))
+			}
+			n := reflect.New(ptrType.Elem())
+			if err := n.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s)); err != nil {
+				return err
+			}
+			fVal.Set(n)
+			return nil
+		}
+
 		if fVal.Type().Elem().Kind() != reflect.Struct {
 			n := reflect.New(fVal.Type().Elem())
 			err := innerParse(targetValue, n.Elem(), value)
@@ -530,9 +568,11 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			fVal.Set(n)
 			return nil
 		}
+
 		if v.Kind() != reflect.Map {
 			return NewError(nil, InvalidParams, fmt.Sprintf("Types don't match. Expected a map[string]interface{} from the JSON, instead got %s", v.Kind().String()))
 		}
+
 		if fVal.IsNil() {
 			// You need a new pointer object thing here
 			// so allocate one with this voodoo-magique
