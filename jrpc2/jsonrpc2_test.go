@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-//// This section (below) is for method json marshalling,
+// This section (below) is for method json marshalling,
 // with special emphasis on how the parameters get marshalled
 // and unmarshalled to/from 'Method' objects
 type HelloMethod struct {
@@ -652,4 +652,43 @@ func TestServerRegistry(t *testing.T) {
 	assert.Nil(t, err_)
 	err_ = server.Unregister(method)
 	assert.Equal(t, "Method not registered", err_.Error())
+}
+
+type OmitEmptyMethod struct {
+	Required string  `json:"required"`
+	Optional *string `json:"optional,omitempty"`
+	Count    *uint32 `json:"count,omitempty"`
+}
+
+func (m OmitEmptyMethod) New() interface{} {
+	return &OmitEmptyMethod{}
+}
+
+func (m OmitEmptyMethod) Call() (jrpc2.Result, error) {
+	return nil, nil
+}
+
+func (m OmitEmptyMethod) Name() string {
+	return "omit_empty"
+}
+
+func TestParsingOmitEmptyFields(t *testing.T) {
+	requestJson := `{"id":1,"method":"omit_empty","params":{"required":"value","optional":"hello","count":7},"jsonrpc":"2.0"}`
+	s := jrpc2.NewServer()
+	s.Register(&OmitEmptyMethod{})
+
+	var result jrpc2.Request
+	err := s.Unmarshal([]byte(requestJson), &result)
+	assert.Nil(t, err)
+
+	method, ok := result.Method.(*OmitEmptyMethod)
+	assert.True(t, ok)
+	assert.Equal(t, "omit_empty", method.Name())
+	assert.Equal(t, "value", method.Required)
+
+	assert.NotNil(t, method.Optional)
+	assert.Equal(t, "hello", *method.Optional)
+
+	assert.NotNil(t, method.Count)
+	assert.Equal(t, uint32(7), *method.Count)
 }
