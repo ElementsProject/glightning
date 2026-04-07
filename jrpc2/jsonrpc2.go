@@ -533,6 +533,9 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		tmType := reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
 		ptrType := fVal.Type()
 
+		// if the pointer itself implements Unmarshaler,
+		// or if the thing it points to does,
+		// then we can use that to unmarshal this value
 		if ptrType.Implements(umType) || reflect.PointerTo(ptrType.Elem()).Implements(umType) {
 			n := reflect.New(ptrType.Elem())
 			data, err := json.Marshal(value)
@@ -546,6 +549,7 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
+		// Handle types implementing encoding.TextUnmarshaler by parsing from a string and setting the field.
 		if ptrType.Implements(tmType) || reflect.PointerTo(ptrType.Elem()).Implements(tmType) {
 			s, ok := value.(string)
 			if !ok {
@@ -559,6 +563,8 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
+		// For pointer-to-non-struct fields, allocate a new element,
+		// parse into it, then assign the pointer.
 		if fVal.Type().Elem().Kind() != reflect.Struct {
 			n := reflect.New(fVal.Type().Elem())
 			err := innerParse(targetValue, n.Elem(), value)
@@ -578,11 +584,13 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			// so allocate one with this voodoo-magique
 			fVal.Set(reflect.New(fVal.Type().Elem()))
 		}
+
 		return innerParseNamed(fVal.Elem(), value.(map[string]interface{}))
 	case reflect.Struct:
 		if v.Kind() != reflect.Map {
 			return NewError(nil, InvalidParams, fmt.Sprintf("Types don't match. Expected a map[string]interface{} from the JSON, instead got %s", v.Kind().String()))
 		}
+
 		return innerParseNamed(fVal, value.(map[string]interface{}))
 	case reflect.String:
 		fVal.SetString(fmt.Sprintf("%v", v))
