@@ -1184,6 +1184,8 @@ const (
 	Debug
 	Io
 	Broken
+	Error
+	Warn
 )
 
 func (l LogLevel) String() string {
@@ -1194,6 +1196,8 @@ func (l LogLevel) String() string {
 		"debug",
 		"io",
 		"broken",
+		"error",
+		"warn",
 	}[l]
 }
 
