@@ -1186,6 +1186,7 @@ const (
 	Broken
 	Error
 	Warn
+	Trace
 )
 
 func (l LogLevel) String() string {
@@ -1198,6 +1199,7 @@ func (l LogLevel) String() string {
 		"broken",
 		"error",
 		"warn",
+		"trace",
 	}[l]
 }
 
