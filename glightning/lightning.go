@@ -2563,38 +2563,44 @@ type FeeRateEstimate struct {
 	Style           FeeRateStyle
 	Details         *FeeRateDetails
 	OnchainEstimate *OnchainEstimate `json:"onchain_fee_estimates"`
-	Warning         string           `json:"warning"`
+	Warning         string           `json:"warning_missing_feerates,omitempty"`
 }
 
 type OnchainEstimate struct {
-	OpeningChannelSatoshis  uint64 `json:"opening_channel_satoshis"`
-	MutualCloseSatoshis     uint64 `json:"mutual_close_satoshis"`
-	UnilateralCloseSatoshis uint64 `json:"unilateral_close_satoshis"`
-	HtlcTimeoutSatoshis     uint64 `json:"htlc_timeout_satoshis"`
-	HtlcSuccessSatoshis     uint64 `json:"htlc_success_satoshis"`
+	OpeningChannelSatoshis              uint64 `json:"opening_channel_satoshis"`
+	MutualCloseSatoshis                 uint64 `json:"mutual_close_satoshis"`
+	UnilateralCloseSatoshis             uint64 `json:"unilateral_close_satoshis"`
+	UnilateralCloseNonanchorSatoshis    uint64 `json:"unilateral_close_nonanchor_satoshis,omitempty"`
+	HtlcTimeoutSatoshis                 uint64 `json:"htlc_timeout_satoshis"`
+	HtlcSuccessSatoshis                 uint64 `json:"htlc_success_satoshis"`
+}
+
+type FeeRateEstimateEntry struct {
+	Blockcount      uint32 `json:"blockcount"`
+	FeeRate         uint32 `json:"feerate"`
+	SmoothedFeeRate uint32 `json:"smoothed_feerate"`
 }
 
 type FeeRateDetails struct {
-	Urgent          int  `json:"urgent"`
-	Normal          int  `json:"normal"`
-	Slow            int  `json:"slow"`
-	MinAcceptable   int  `json:"min_acceptable"`
-	MaxAcceptable   int  `json:"max_acceptable"`
-	Opening         uint `json:"opening"`
-	MutualClose     uint `json:"mutual_close"`
-	UnilateralClose uint `json:"unilateral_close"`
-	DelayedToUs     uint `json:"delayed_to_us"`
-	HtlcResolution  uint `json:"htlc_resolution"`
-	Penalty         uint `json:"penalty"`
+	MinAcceptable          uint32                  `json:"min_acceptable"`
+	MaxAcceptable          uint32                  `json:"max_acceptable"`
+	Floor                  uint32                  `json:"floor,omitempty"`
+	Estimates              []FeeRateEstimateEntry  `json:"estimates,omitempty"`
+	Opening                uint32                  `json:"opening,omitempty"`
+	MutualClose            uint32                  `json:"mutual_close,omitempty"`
+	UnilateralClose        uint32                  `json:"unilateral_close,omitempty"`
+	UnilateralAnchorClose  uint32                  `json:"unilateral_anchor_close,omitempty"`
+	Penalty                uint32                  `json:"penalty,omitempty"`
+	Splice                 uint32                  `json:"splice,omitempty"`
 }
 
 // Return feerate estimates, either satoshi-per-kw or satoshi-per-kb {style}
 func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 	var result struct {
-		PerKw           *FeeRateDetails  `json:"perkw"`
-		PerKb           *FeeRateDetails  `json:"perkb"`
-		OnchainEstimate *OnchainEstimate `json:"onchain_fee_estimates"`
-		Warning         string           `json:"warning"`
+		PerKw                  *FeeRateDetails  `json:"perkw"`
+		PerKb                  *FeeRateDetails  `json:"perkb"`
+		OnchainEstimate        *OnchainEstimate `json:"onchain_fee_estimates"`
+		WarningMissingFeerates string           `json:"warning_missing_feerates"`
 	}
 	err := l.client.Request(&FeeRatesRequest{style.String()}, &result)
 	if err != nil {
@@ -2613,7 +2619,7 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 		Style:           style,
 		Details:         details,
 		OnchainEstimate: result.OnchainEstimate,
-		Warning:         result.Warning,
+		Warning:         result.WarningMissingFeerates,
 	}, nil
 }
 

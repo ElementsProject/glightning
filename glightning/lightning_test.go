@@ -2041,20 +2041,23 @@ func TestFeeRate(t *testing.T) {
 
 	// what i expect the lightning rpc to generate
 	expectedRequest := "{\"jsonrpc\":\"2.0\",\"method\":\"feerates\",\"params\":{\"style\":\"perkb\"},\"id\":1}"
-	// json the server will respond with
+	// json the server will respond with (CLN v24.05+ format)
 	reply := wrapResult(1, `{
 	   "perkb": {
+	      "min_acceptable": 1012,
+	      "max_acceptable": 10000,
+	      "floor": 1012,
+	      "estimates": [
+	         {"blockcount": 6, "feerate": 1012, "smoothed_feerate": 1012},
+	         {"blockcount": 12, "feerate": 1012, "smoothed_feerate": 1012},
+	         {"blockcount": 100, "feerate": 2024, "smoothed_feerate": 2024}
+	      ],
 	      "opening": 1012,
 	      "mutual_close": 1012,
 	      "unilateral_close": 1012,
-	      "delayed_to_us": 1012,
-	      "htlc_resolution": 1012,
+	      "unilateral_anchor_close": 1012,
 	      "penalty": 1012,
-	      "min_acceptable": 1012,
-	      "max_acceptable": 10000,
-	      "urgent": 1012,
-	      "normal": 1012,
-	      "slow": 2024
+	      "splice": 1012
 	   },
 	   "onchain_fee_estimates": {
 	      "opening_channel_satoshis": 177,
@@ -2074,17 +2077,20 @@ func TestFeeRate(t *testing.T) {
 	assert.Equal(t, &glightning.FeeRateEstimate{
 		Style: glightning.PerKb,
 		Details: &glightning.FeeRateDetails{
-			Urgent:          1012,
-			Normal:          1012,
-			Slow:            2024,
-			MinAcceptable:   1012,
-			MaxAcceptable:   10000,
-			Opening:         1012,
-			MutualClose:     1012,
-			UnilateralClose: 1012,
-			DelayedToUs:     1012,
-			HtlcResolution:  1012,
-			Penalty:         1012,
+			MinAcceptable:         1012,
+			MaxAcceptable:         10000,
+			Floor:                 1012,
+			Estimates: []glightning.FeeRateEstimateEntry{
+				{Blockcount: 6, FeeRate: 1012, SmoothedFeeRate: 1012},
+				{Blockcount: 12, FeeRate: 1012, SmoothedFeeRate: 1012},
+				{Blockcount: 100, FeeRate: 2024, SmoothedFeeRate: 2024},
+			},
+			Opening:               1012,
+			MutualClose:           1012,
+			UnilateralClose:       1012,
+			UnilateralAnchorClose: 1012,
+			Penalty:               1012,
+			Splice:                1012,
 		},
 		OnchainEstimate: &glightning.OnchainEstimate{
 			OpeningChannelSatoshis:  177,
@@ -2093,12 +2099,11 @@ func TestFeeRate(t *testing.T) {
 			HtlcTimeoutSatoshis:     167,
 			HtlcSuccessSatoshis:     177,
 		},
-		Warning: "",
 	}, rates)
 
 	expectedRequest = "{\"jsonrpc\":\"2.0\",\"method\":\"feerates\",\"params\":{\"style\":\"perkw\"},\"id\":2}"
 
-	reply = "{ \"jsonrpc\":\"2.0\", \"id\":2,\"result\":{\"perkw\": { \"urgent\": 832, \"normal\": 253, \"slow\": 253, \"min_acceptable\": 253, \"max_acceptable\": 8320 }, \"onchain_fee_estimates\": { \"opening_channel_satoshis\": 177, \"mutual_close_satoshis\": 170, \"unilateral_close_satoshis\": 497 }}}"
+	reply = wrapResult(2, `{"perkw": {"min_acceptable": 253, "max_acceptable": 8320, "floor": 253, "estimates": [{"blockcount": 6, "feerate": 832, "smoothed_feerate": 832}, {"blockcount": 12, "feerate": 253, "smoothed_feerate": 253}], "opening": 253, "mutual_close": 253, "unilateral_close": 253}, "onchain_fee_estimates": {"opening_channel_satoshis": 177, "mutual_close_satoshis": 170, "unilateral_close_satoshis": 497}}`)
 
 	// queue request & response
 	go runServerSide(t, expectedRequest, reply, replyQ, requestQ)
@@ -2109,18 +2114,22 @@ func TestFeeRate(t *testing.T) {
 	assert.Equal(t, &glightning.FeeRateEstimate{
 		Style: glightning.PerKw,
 		Details: &glightning.FeeRateDetails{
-			Urgent:        832,
-			Normal:        253,
-			Slow:          253,
 			MinAcceptable: 253,
 			MaxAcceptable: 8320,
+			Floor:         253,
+			Estimates: []glightning.FeeRateEstimateEntry{
+				{Blockcount: 6, FeeRate: 832, SmoothedFeeRate: 832},
+				{Blockcount: 12, FeeRate: 253, SmoothedFeeRate: 253},
+			},
+			Opening:         253,
+			MutualClose:     253,
+			UnilateralClose: 253,
 		},
 		OnchainEstimate: &glightning.OnchainEstimate{
 			OpeningChannelSatoshis:  177,
 			MutualCloseSatoshis:     170,
 			UnilateralCloseSatoshis: 497,
 		},
-		Warning: "",
 	}, rates)
 }
 
@@ -2384,7 +2393,7 @@ func TestSetChannelFee(t *testing.T) {
 
 func TestLimitedFeeRates(t *testing.T) {
 	request := "{\"jsonrpc\":\"2.0\",\"method\":\"feerates\",\"params\":{\"style\":\"perkw\"},\"id\":1}"
-	reply := wrapResult(1, `{ "perkw": { "min_acceptable": 253, "max_acceptable": 4294967295 }, "warning": "Some fee estimates unavailable: bitcoind startup?" } `)
+	reply := wrapResult(1, `{ "perkw": { "min_acceptable": 253, "max_acceptable": 4294967295 }, "warning_missing_feerates": "Some fee estimates unavailable: bitcoind startup?" } `)
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, request, reply, replyQ, requestQ)
