@@ -1591,6 +1591,31 @@ type PayFailure struct {
 	Route         []RouteHop `json:"route"`
 }
 
+type XPayRequest struct {
+	InvString     string   `json:"invstring"`
+	AmountMsat    *Amount  `json:"amount_msat,omitempty"`
+	MaxFee        *Amount  `json:"maxfee,omitempty"`
+	Layers        []string `json:"layers,omitempty"`
+	RetryFor      uint32   `json:"retry_for,omitempty"`
+	PartialMsat   *Amount  `json:"partial_msat,omitempty"`
+	MaxDelay      uint32   `json:"maxdelay,omitempty"`
+	PayerNote     string   `json:"payer_note,omitempty"`
+	Label         string   `json:"label,omitempty"`
+	LocalInvReqId string   `json:"localinvreqid,omitempty"`
+}
+
+func (r XPayRequest) Name() string {
+	return "xpay"
+}
+
+type XPayResult struct {
+	PaymentPreimage string `json:"payment_preimage"`
+	FailedParts     uint64 `json:"failed_parts"`
+	SuccessfulParts uint64 `json:"successful_parts"`
+	AmountMsat      Amount `json:"amount_msat"`
+	AmountSentMsat  Amount `json:"amount_sent_msat"`
+}
+
 func (l *Lightning) PayBolt(bolt11 string) (*PaymentSuccess, error) {
 	return l.Pay(&PayRequest{
 		Bolt11: bolt11,
@@ -1638,6 +1663,23 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 	}
 	var result PaymentSuccess
 	err := l.client.RequestNoTimeout(req, &result)
+	return &result, err
+}
+
+func (l *Lightning) XPayInvoice(invstring string) (*XPayResult, error) {
+	return l.XPay(&XPayRequest{
+		InvString: invstring,
+	})
+}
+
+// XPay sends a payment specified by an invoice string, offer, or BIP353 name.
+func (l *Lightning) XPay(req *XPayRequest) (*XPayResult, error) {
+	if req == nil || req.InvString == "" {
+		return nil, fmt.Errorf("Must supply an invstring to xpay")
+	}
+	var result XPayResult
+	err := l.client.RequestNoTimeout(req, &result)
+
 	return &result, err
 }
 
@@ -2790,6 +2832,7 @@ func init() {
 	Lightning_RpcMethods[(&SendPayRequest{}).Name()] = func() jrpc2.Method { return new(SendPayRequest) }
 	Lightning_RpcMethods[(&WaitSendPayRequest{}).Name()] = func() jrpc2.Method { return new(WaitSendPayRequest) }
 	Lightning_RpcMethods[(&PayRequest{}).Name()] = func() jrpc2.Method { return new(PayRequest) }
+	Lightning_RpcMethods[(&XPayRequest{}).Name()] = func() jrpc2.Method { return new(XPayRequest) }
 	Lightning_RpcMethods[(&ListPaysRequest{}).Name()] = func() jrpc2.Method { return new(ListPaysRequest) }
 	Lightning_RpcMethods[(&ListSendPaysRequest{}).Name()] = func() jrpc2.Method { return new(ListSendPaysRequest) }
 	Lightning_RpcMethods[(&TransactionsRequest{}).Name()] = func() jrpc2.Method { return new(TransactionsRequest) }
