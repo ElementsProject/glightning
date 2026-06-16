@@ -549,6 +549,77 @@ func TestPay(t *testing.T) {
 	assert.Equal(t, expect, payment)
 }
 
+func TestXPayInvoice(t *testing.T) {
+	invstring := "lnbcrt100n1pnt2bolt11invl040100000000"
+	req := `{"jsonrpc":"2.0","method":"xpay","params":{"invstring":"lnbcrt100n1pnt2bolt11invl040100000000"},"id":1}`
+	resp := wrapResult(1, `{
+  "payment_preimage": "paymentpreimgxp1010101010101010101010101010101010101010101010101",
+  "amount_msat": 10000,
+  "amount_sent_msat": 10002,
+  "failed_parts": 0,
+  "successful_parts": 1
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	// confirm that we're using non-timeout path
+	lightning.SetTimeout(0)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	payment, err := lightning.XPayInvoice(invstring)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := &glightning.XPayResult{
+		PaymentPreimage: "paymentpreimgxp1010101010101010101010101010101010101010101010101",
+		AmountMsat:      glightning.AmountFromMSat(10000),
+		AmountSentMsat:  glightning.AmountFromMSat(10002),
+		FailedParts:     0,
+		SuccessfulParts: 1,
+	}
+	assert.Equal(t, expected, payment)
+}
+
+func TestXPayWithOptions(t *testing.T) {
+	invstring := "lni1qqg0qe030303030303"
+	amount := glightning.AmountFromMSat(1000)
+	maxfee := glightning.AmountFromMSat(0)
+	partial := glightning.AmountFromMSat(500)
+	req := `{"jsonrpc":"2.0","method":"xpay","params":{"amount_msat":1000,"invstring":"lni1qqg0qe030303030303","label":"coffee","layers":["avoid-list"],"localinvreqid":"0123456789abcdef","maxdelay":144,"maxfee":0,"partial_msat":500,"payer_note":"Coffee payment","retry_for":30},"id":1}`
+	resp := wrapResult(1, `{
+  "payment_preimage": "paymentpreimgxp2020202020202020202020202020202020202020202020202",
+  "amount_msat": "1000msat",
+  "amount_sent_msat": "1000msat",
+  "failed_parts": 0,
+  "successful_parts": 1
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	lightning.SetTimeout(0)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	payment, err := lightning.XPay(&glightning.XPayRequest{
+		InvString:     invstring,
+		AmountMsat:    &amount,
+		MaxFee:        &maxfee,
+		Layers:        []string{"avoid-list"},
+		RetryFor:      30,
+		PartialMsat:   &partial,
+		MaxDelay:      144,
+		PayerNote:     "Coffee payment",
+		Label:         "coffee",
+		LocalInvReqId: "0123456789abcdef",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := &glightning.XPayResult{
+		PaymentPreimage: "paymentpreimgxp2020202020202020202020202020202020202020202020202",
+		AmountMsat:      glightning.AmountFromMSat(1000),
+		AmountSentMsat:  glightning.AmountFromMSat(1000),
+		FailedParts:     0,
+		SuccessfulParts: 1,
+	}
+	assert.Equal(t, expected, payment)
+}
+
 func TestWaitSendPay(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"waitsendpay","params":{"payment_hash":"37ef7c6ff62d5a2fbce1940ab2f4de2785045b922f93944b73f7bc5123ed698f"},"id":1}`
 	resp := wrapResult(1, `{
